@@ -3,8 +3,6 @@
 A Figma plugin that automatically fetches and summarizes comments from your Figma documents using AI. 
 Summarise crit sessions, catch-up after time-off, or remind yourself of the  
 
-![Comment Summariser Plugin](https://user-images.githubusercontent.com/16322616/62862692-46b5f600-bd0f-11e9-93b0-75955d1de8f3.png)
-
 ## 🔗 Figma Plugin
 
 **[Install Comment Summariser from Figma Community](https://www.figma.com/community/plugin/1510186428265043923/Comment-Summariser)**
