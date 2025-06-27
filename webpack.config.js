@@ -43,8 +43,10 @@ module.exports = (env, argv) => {
         // Enables including CSS by doing "import './file.css'" in your TypeScript code
         { test: /\.css$/, use: ['style-loader', { loader: 'css-loader' }] },
 
-        // Allows you to use "<%= require('./file.svg') %>" in your HTML code to get a data URI
-        { test: /\.(png|jpg|gif|webp|svg)$/, loader: 'url-loader' },
+        { 
+          test: /\.(png|jpg|gif|webp|svg)$/, 
+          type: 'asset/inline' // Always inline as data URI for Figma plugin
+        },
       ],
     },
 

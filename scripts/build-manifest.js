@@ -5,7 +5,7 @@ require('dotenv').config();
 const mode = process.argv[2]; // 'dev' or 'prod'
 
 const baseManifest = {
-  "name": "Comment Summariser ✨",
+  "name": "Comment Export ✨",
   "id": "1510186428265043923",
   "api": "1.0.0",
   "main": "dist/code.js",

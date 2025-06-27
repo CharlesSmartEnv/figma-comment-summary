@@ -1,18 +1,16 @@
 import axios, { AxiosError } from 'axios';
 import express from 'express';
-import { GoogleGenAI } from "@google/genai";
 import { config } from 'dotenv';
 config();
 
-
 const FIGMA_API_BASE_URL = 'https://api.figma.com/v1';
+const OPENROUTER_API_BASE_URL = 'https://openrouter.ai/api/v1';
 
+// OpenRouter configuration
+const openRouterApiKey = process.env.OPENROUTER_API_KEY || (() => {
+  throw new Error('OPENROUTER_API_KEY environment variable is not set');
+})();
 
-const geminiAI = new GoogleGenAI({ 
-  apiKey: process.env.GEMINI_API_KEY || (() => {
-    throw new Error('GEMINI_API_KEY environment variable is not set');
-  })()
-});
 interface FilteredComment {
   userHandle: string | null;
   message: string;
@@ -103,8 +101,8 @@ const estimateTokenCount = (text: string): number => {
 
 
 const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promise<string> => {
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error('Gemini API key not configured');
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error('OpenRouter API key not configured');
   }
 
   if (sortedComments.length === 0) {
@@ -139,16 +137,34 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
           continue;
         }
 
-        const completion = await geminiAI.models.generateContent({
-          model: 'gemini-1.5-flash',
-              contents: `Please summarize these Figma comments (chunk ${i + 1}/${chunks.length}):\n\n${commentsText}`,
-              config: {
-                systemInstruction: 'You are a helpful assistant that summarizes Figma design comments. Provide a concise summary highlighting key feedback themes, and overall sentiment. Include primary action points. At the end of each theme in your summary, cite the ID(s) of the original comment(s) that support it using the format [ID: comment_id_1, ID: comment_id_2]. Each comment in the input will have an \'ID:\' field. Do not include comment ID citations for action point summary. Keep it brief as this is part of a larger summary.',
+        const response = await axios.post(
+          `${OPENROUTER_API_BASE_URL}/chat/completions`,
+          {
+            model: 'deepseek/deepseek-r1-0528:free',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a helpful assistant that summarizes Figma design comments. Provide a concise summary highlighting key feedback themes with primary action points at the top. Merge similar themes together and do not number them. At the end of each theme in your summary, cite the ID(s) of the original comment(s) that support it using the format [ID: comment_id_1, comment_id_2]. Each comment in the input will have an \'ID:\' field. Do not include comment ID citations for action point summary. Keep it brief as this is part of a larger summary.',
               },
-          // max_tokens: 300,
-          // temperature: 0.7,
-        });
-        const chunkSummary = completion.text || `Unable to summarize chunk ${i + 1}`;
+              {
+                role: 'user',
+                content: `Please summarize these Figma comments (chunk ${i + 1}/${chunks.length}):\n\n${commentsText}`
+              }
+            ],
+            max_tokens: 300,
+            temperature: 0.7,
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${openRouterApiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
+              'X-Title': 'Figma Comment Export'
+            },
+          }
+        );
+
+        const chunkSummary = response.data.choices[0]?.message?.content || `Unable to summarize chunk ${i + 1}`;
         chunkSummaries.push(`**Chunk ${i + 1}:** ${chunkSummary}`);
 
         // Add delay between requests to avoid rate limiting
@@ -177,21 +193,39 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
       if (estimatedTokens > 10000) {
         throw new Error(`Comment set too large (${estimatedTokens} estimated tokens). Consider reducing comment count.`);
       }
-      const completion = await geminiAI.models.generateContent({
-        model: 'gemini-1.5-flash',
-            contents: `Please summarize these Figma comments:\n\n${commentsText}`,
-            config: {
-              systemInstruction: 'You are a helpful assistant that summarizes Figma design comments. Provide a concise summary highlighting key feedback themes, and overall sentiment. Include primary action points. At the end of each theme in your summary, cite the ID(s) of the original comment(s) that support it using the format [ID: comment_id_1, comment_id_2]. Each comment in the input will have an \'ID:\' field. Do not include comment ID citations for action point summary. Keep it brief as this is part of a larger summary.',
-            },
-        // max_tokens: 300,
-        // temperature: 0.7,
-      });
 
-      return completion.text || 'Unable to generate summary.';
+      const response = await axios.post(
+        `${OPENROUTER_API_BASE_URL}/chat/completions`,
+        {
+          model: 'deepseek/deepseek-r1-0528:free',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful assistant that summarizes Figma design comments. Provide a concise summary highlighting key feedback themes with primary action points at the top. Merge similar themes together and do not number them. At the end of each theme in your summary, cite the ID(s) of the original comment(s) that support it using the format [ID: comment_id_1, comment_id_2]. Each comment in the input will have an \'ID:\' field. Do not include comment ID citations for action point summary. Keep it brief as this is part of a larger summary.'
+            },
+            {
+              role: 'user',
+              content: `Please summarize these Figma comments:\n\n${commentsText}`
+            }
+          ],
+          // max_tokens: 300,
+          // temperature: 0.7,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${openRouterApiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
+            'X-Title': 'Figma Comment Export'
+          },
+        }
+      );
+
+      return response.data.choices[0]?.message?.content || 'Unable to generate summary.';
     }
 
   } catch (error) {
-    console.error('Error calling OpenAI API:', error);
+    console.error('Error calling OpenRouter API:', error);
     
     // More specific error handling
     if (error instanceof Error) {
@@ -201,7 +235,7 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
       if (error.message.includes('rate')) {
         throw new Error(`Rate limit exceeded: ${error.message}`);
       }
-      throw new Error(`OpenAI API error: ${error.message}`);
+      throw new Error(`OpenRouter API error: ${error.message}`);
     }
     
     throw new Error('Failed to generate AI summary');

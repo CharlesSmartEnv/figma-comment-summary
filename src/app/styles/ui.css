@@ -1,33 +1,48 @@
 body {
-  font-family: "PolySans","Inter",-apple-system;
-  font: 16px;
+  font-family: "SF Pro", -apple-system, sans-serif;
+  font: 15px;
   color: #191919;
   text-align: left;
   line-height: 150%;
-  margin: 24px;
   background-color: #FCF7F3;
   font-smooth: antialiased;
   -webkit-font-smoothing: antialiased;
+  margin: 0;
+
+}
+p{
+  font-size: 15px;
 }
 strong{
   font-weight: 600;
 }
 
 button {
-  border-radius: 24px;
-  background:#9CEE69;
-  color: #1A4200;
+  background:#000000;
+  color: #ffffff;
   border: none;
-  padding: 12px 16px;
+  padding: 12px 20px;
   outline: none;
-  font-weight: 600;
   cursor: pointer;
   max-width: fit-content;
-  font-family: "PolySans","Inter",-apple-system;
-  font-size: 16px;
+  font-family: "SF Mono", monospace;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
 }
 button:hover {
-  background: #6CC832;
+  background: #1d1d1d;
+  
+}
+h1{ 
+  font-size: 40px;
+  line-height: 110%;
+  margin:0 0 16px 0;
+  text-align: center;
 }
 h2, h3, h4{
   font-weight: 600;
@@ -38,7 +53,6 @@ h2, h3, h4{
 }
 
 .primary-text{
-  font-size: 16px;
   color: #191919;
   margin:0;
   text-align: left;
@@ -46,7 +60,6 @@ h2, h3, h4{
 .comments-text{
   margin-top: 16px;
   margin-bottom: 0;
-  font-size: 16px;
   color: #191919;
   text-align: left;
 }
@@ -54,7 +67,6 @@ h2, h3, h4{
   margin: 0;
 }
 .secondary-text{
-  font-size: 16px;
   color: #707070;
   margin:0;
   text-align: left;
@@ -70,7 +82,8 @@ h2, h3, h4{
 .pageContainer{
   display: flex;
   flex-direction: column;
-  align-items: left;
+  align-items: center;
+  padding: 40px 24px;
 }
 .header{
   display: flex;
@@ -81,11 +94,20 @@ h2, h3, h4{
   display: flex;
   flex-direction: column;
   align-items: left;
+  width: 100%;
+}
+.connect-button-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 24px;
 }
 .disconnect-button{
   background-color: transparent;
-  border: 1px solid #CCCCCC;
   color: #191919;
+  font-family: "Geist Mono", monospace;
+  text-transform: uppercase;
+  font-weight: 400;
 }
 .disconnect-button:hover{
   background-color: rgba(0, 0, 0, 0.07);
@@ -98,10 +120,49 @@ hr{
   box-shadow: none;
 }
 .date-range-container{
-  /* display: flex;
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  gap: 16px; */
+  margin-top: 24px;
+  gap: 8px;
+}
+select{
+  max-width: 200px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #949494;
+  background-color: transparent;
+  font-family: inherit;
+  height: 40px;
+}
+.tab-navigation{
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 24px;
+  gap: 16px;
+  width: 100%;
+}
+.tab-button{
+  padding: 8px 0px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-weight: 400;
+  color: #666;
+  margin-right: 8px;
+  margin-bottom: -1px;
+}
+.tab-button.active{
+  border-bottom: 2px solid #191919;
+  font-weight: 600;
+  color: #191919; 
+}
+.tab-button:hover, .tab-button.active:hover{
+  background-color: transparent;
 }

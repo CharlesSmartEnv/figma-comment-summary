@@ -9,20 +9,21 @@
 }
 
 .comment-reference-badge {
-  background-color: #F0F1FF;
-  color: #4F5CE8; 
-  font-size: 0.75rem; 
-  font-weight: 600; 
-  padding: 0.25rem 0.5rem; 
-  border-radius: 9999px; 
+  background-color: #edebe7;
+  color: #707070; 
+  font-size: 10px; 
+  font-family: "SF Mono", monospace;
+  font-weight: 500; 
+  padding: 2px 4px; 
+  border-radius: 4px; 
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
 }
 
 .comment-reference-badge:hover, 
 .comment-reference-badge:focus {
-  background-color: #4F5CE8;
-  color: white;
+  background-color: #ceccc9;
+  color: rgb(0, 0, 0);
 }
 
 .comment-reference-badge:focus {

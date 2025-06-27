@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
 import logo from '../assets/logo.svg';
 import '../styles/ui.css';
-// Lazy load ReactMarkdown to reduce initial bundle size
+import backgroundImage from '../assets/background.jpg';
 const ReactMarkdown = lazy(() => import('react-markdown'));
 import CommentReferenceBadge from './CommentReferenceBadge';
+import Loader from './Loader';
 
 const POLLING_INTERVAL_MS = 3000; // Poll every 3 seconds
 const POLLING_TIMEOUT_MS = 2 * 60 * 1000; // Stop polling after 2 minutes
@@ -36,6 +37,7 @@ function App() {
   const [commentsMap, setCommentsMap] = useState<Map<string, FilteredComment>>(new Map());
   
   const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'summary' | 'json'>('summary');
   
   const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000';
 
@@ -298,131 +300,139 @@ function App() {
     };
   }, [clearPolling, SERVER_URL, selectedDateRange]);
 
-  const markdownComponents = {
-    h1: ({ children }: { children?: React.ReactNode }) => (
-      <h1 className="">{children}</h1>
-    ),
-    h2: ({ children }: { children?: React.ReactNode }) => (
-      <h2 className="">{children}</h2>
-    ),
-    h3: ({ children }: { children?: React.ReactNode }) => (
-      <h3 className="">{children}</h3>
-    ),
-    p: ({ children }: { children?: React.ReactNode }) => (
-      // Added a wrapper to allow inline elements like our badge to flow correctly with paragraph text
-      <p className="comments-text">{children}</p>
-    ),
-    ul: ({ children }: { children?: React.ReactNode }) => (
-      <ul className="">{children}</ul>
-    ),
-    ol: ({ children }: { children?: React.ReactNode }) => (
-      <ol className="">{children}</ol>
-    ),
-    li: ({ children }: { children?: React.ReactNode }) => (
-      <li className="">{children}</li>
-    ),
-    strong: ({ children }: { children?: React.ReactNode }) => (
-      <strong className="">{children}</strong>
-    ),
-    em: ({ children }: { children?: React.ReactNode }) => (
-      <em className="">{children}</em>
-    ),
-    code: ({ children }: { children?: React.ReactNode }) => (
-      <code className="">{children}</code>
-    ),
-    blockquote: ({ children }: { children?: React.ReactNode }) => (
-      <blockquote className="">{children}</blockquote>
-    ),
-  };
-
-  const parseSummaryAndRenderWithReferences = (summary: string): (JSX.Element | null)[] => {
-    if (!summary) return [];
-    if (commentsMap.size === 0) {
-        return [
-            <Suspense key="plain-summary" fallback={<div>Loading...</div>}>
-                <ReactMarkdown components={markdownComponents}>
-                    {summary}
-                </ReactMarkdown>
-            </Suspense>
-        ];
+  // Helper function to process ID references within text content
+  const processTextWithIdReferences = (text: string): (string | JSX.Element)[] => {
+    if (!text || typeof text !== 'string' || commentsMap.size === 0) {
+      return [text];
     }
 
-    const idTagPattern = /(\[ID:\s*[\w\d-]+(?:,\s*[\w\d-]+)*\])/g; // Allow digits in IDs
-    const idContentPattern = /^\[ID:\s*([\w\d-]+(?:,\s*[\w\d-]+)*)\]$/; // Allow digits in IDs
+    const idTagPattern = /(\[ID:\s*[\w\d-]+(?:,\s*[\w\d-]+)*\])/g;
+    const idContentPattern = /^\[ID:\s*([\w\d-]+(?:,\s*[\w\d-]+)*)\]$/;
 
-    const parts = summary.split(idTagPattern);
-    let partKeyIndex = 0;
-
-    const elements = parts.map((part, index) => {
-      if (index % 2 === 0) { 
-        if (part) {
-          // Wrap text parts in a span if they are intended to be inline with badges
-          // Or render as ReactMarkdown if they can be block elements
+    const parts = text.split(idTagPattern);
+    
+    return parts.map((part, index) => {
+      if (index % 2 === 0) {
+        // Regular text part
+        return part;
+      } else {
+        // ID reference part
+        const idContentMatch = part.match(idContentPattern);
+        if (idContentMatch && idContentMatch[1]) {
+          const idsString = idContentMatch[1];
+          const commentIds = idsString.split(',').map(id => id.trim());
+          
           return (
-            <span key={`text-${partKeyIndex++}`}>
-                <Suspense fallback={<span>Loading...</span>}>
-                    <ReactMarkdown components={markdownComponents}>
-                        {part}
-                    </ReactMarkdown>
-                </Suspense>
+            <span key={`id-group-${index}`} className="comment-reference-badge-wrapper">
+              {commentIds.map((id, idIdx) => {
+                const comment = commentsMap.get(id);
+                if (comment) {
+                  return (
+                    <CommentReferenceBadge
+                      key={`badge-${id}-${idIdx}`}
+                      commentId={id}
+                      comment={comment}
+                    />
+                  );
+                } else {
+                  return (
+                    <span key={`missing-id-${id}-${idIdx}`} className="text-red-500">
+                      {`[ID: ${id} not found]`}
+                    </span>
+                  );
+                }
+              })}
             </span>
           );
         }
-        return null;
-      } else { 
-        const idContentMatch = part.match(idContentPattern);
-        if (idContentMatch && idContentMatch[1]) {
-          const idsString = idContentMatch[1]; 
-          const commentIds = idsString.split(',').map(id => id.trim());
-          
-          const badgeElements = commentIds.map((id, idIdx) => {
-            const comment = commentsMap.get(id);
-            if (comment) {
-              return (
-                <CommentReferenceBadge
-                  key={`badge-${id}-${idIdx}`}
-                  commentId={id}
-                  comment={comment}
-                />
-              );
-            } else {
-              return (
-                <span key={`missing-id-${id}-${idIdx}`} className="text-red-500">
-                    {`[ID: ${id} not found]`}
-                </span>
-              );
-            }
-          });
-          
-          // Join badge elements with a comma and space, rendered as text node if it's just one badge
-          return (
-            <span key={`id-group-${partKeyIndex++}`}>
-              {badgeElements.reduce((prev, curr) => {
-                return prev === null ? [curr] : [...(prev as JSX.Element[]), curr];
-              }, null as (JSX.Element[] | null))}
-            </span>
-          );
-
-        }        
-        return (
-            <span key={`malformed-tag-${partKeyIndex++}`}>
-                <Suspense fallback={<span>Loading...</span>}>
-                    <ReactMarkdown components={markdownComponents}>
-                        {part}
-                    </ReactMarkdown>
-                </Suspense>
-            </span>
-        );
+        return part;
       }
-    });
-    return elements.filter(Boolean as unknown as (value: JSX.Element | null) => value is JSX.Element); // type assertion for filter
+    }).filter(Boolean);
+  };
+
+  // Helper function to process children recursively
+  const processChildren = (children: React.ReactNode): React.ReactNode => {
+    if (typeof children === 'string') {
+      const processed = processTextWithIdReferences(children);
+      return processed.length === 1 ? processed[0] : processed;
+    }
+    
+    if (Array.isArray(children)) {
+      return children.map((child, index) => {
+        if (React.isValidElement(child)) {
+          const childProps = child.props as any; // Type assertion to access children
+          return React.cloneElement(child, { key: index }, processChildren(childProps.children));
+        } else if (typeof child === 'string') {
+          return processTextWithIdReferences(child);
+        } else {
+          return child;
+        }
+      }).flat();
+    }
+    
+    return children;
+  };
+
+  const markdownComponents = {
+    h1: ({ children }: { children?: React.ReactNode }) => (
+      <h1 className="">{processChildren(children)}</h1>
+    ),
+    h2: ({ children }: { children?: React.ReactNode }) => (
+      <h2 className="">{processChildren(children)}</h2>
+    ),
+    h3: ({ children }: { children?: React.ReactNode }) => (
+      <h3 className="">{processChildren(children)}</h3>
+    ),
+    p: ({ children }: { children?: React.ReactNode }) => (
+      <p className="comments-text">{processChildren(children)}</p>
+    ),
+    ul: ({ children }: { children?: React.ReactNode }) => (
+      <ul className="">{processChildren(children)}</ul>
+    ),
+    ol: ({ children }: { children?: React.ReactNode }) => (
+      <ol className="">{processChildren(children)}</ol>
+    ),
+    li: ({ children }: { children?: React.ReactNode }) => (
+      <li className="">{processChildren(children)}</li>
+    ),
+    strong: ({ children }: { children?: React.ReactNode }) => (
+      <strong className="">{processChildren(children)}</strong>
+    ),
+    em: ({ children }: { children?: React.ReactNode }) => (
+      <em className="">{processChildren(children)}</em>
+    ),
+    code: ({ children }: { children?: React.ReactNode }) => (
+      <code className="">{processChildren(children)}</code>
+    ),
+    blockquote: ({ children }: { children?: React.ReactNode }) => (
+      <blockquote className="">{processChildren(children)}</blockquote>
+    ),
+  };
+
+  // Simplified function to render summary with inline references
+  const renderSummaryWithInlineReferences = (summary: string): JSX.Element => {
+    if (!summary) return <div>No summary available</div>;
+    
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <ReactMarkdown components={markdownComponents}>
+          {summary}
+        </ReactMarkdown>
+      </Suspense>
+    );
   };
 
   return (
     <div>
-      <div className='pageContainer'>
+      <div className='pageContainer'
+      style={{ 
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh'
+      }}>
         <div className='header'>
-        <img className='logo' src={logo} alt="Plugin Logo" />
         {isAuthenticated && (
           <button
                   onClick={handleDisconnectFigma}
@@ -433,88 +443,107 @@ function App() {
           </button>
         )}
         </div>
-      <h2>Comment Summariser</h2>
-      <p className='primary-text'>Summarises all unresolved comments in the file. <br /> Large comment sets will be batch processed.</p>
+      <h1>Summarise and export <br />Figma comments</h1>
+      <p className='primary-text'>Summarises and exports all unresolved comments in the file.</p>
 
       {!isAuthenticated ? (
-        <div style={{ marginTop: '24px' }}>
+        <div className='connect-button-container'>
           <button
             onClick={handleConnectFigma}
             className="connect-button"
             disabled={isAuthenticating}
             aria-label="Connect Figma Account"
-          >
+          ><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.91775 19.1667C5.4143 19.1667 4.19553 17.9176 4.19553 16.3768C4.19553 14.836 5.4143 13.587 6.91775 13.587H9.63997V16.3768C9.63997 17.9176 8.42119 19.1667 6.91775 19.1667ZM13.1112 6.41305H10.389V0.833344H13.1112C14.6146 0.833344 15.8334 2.0824 15.8334 3.6232C15.8334 5.164 14.6146 6.41305 13.1112 6.41305ZM6.88897 6.41305H9.61119V0.833344H6.88897C5.38553 0.833344 4.16675 2.0824 4.16675 3.6232C4.16675 5.164 5.38553 6.41305 6.88897 6.41305ZM6.88897 12.7899H9.61119V7.21015H6.88897C5.38553 7.21015 4.16675 8.45921 4.16675 10C4.16675 11.5408 5.38553 12.7899 6.88897 12.7899ZM12.7223 7.21015C12.1035 7.21015 11.51 7.46209 11.0724 7.91055C10.6348 8.35901 10.389 8.96725 10.389 9.60146C10.389 10.2357 10.6348 10.8439 11.0724 11.2924C11.51 11.7408 12.1035 11.9928 12.7223 11.9928C13.3411 11.9928 13.9346 11.7408 14.3722 11.2924C14.8098 10.8439 15.0556 10.2357 15.0556 9.60146C15.0556 8.96725 14.8098 8.35901 14.3722 7.91055C13.9346 7.46209 13.3411 7.21015 12.7223 7.21015Z" fill="white"/>
+          </svg>
+          
             {isAuthenticating ? 'Authenticating...' : 'Connect Figma'}
           </button>
-          {isAuthenticating && <p className='secondary-text' style={{ marginTop: '16px' }}>😬 I'm too cheap to pay for a server, so it might take 30s+ to load the first time</p>}
+          {isAuthenticating && <p className='secondary-text' style={{ marginTop: '16px', textAlign: 'center' }}>😬 I'm too cheap to pay for a server, so it might take 30s+ to load the first time</p>}
           {authError && (
             <p role="alert" className="error-message" style={{ color: 'red' }}>{authError}</p>
           )}
         </div>
       ) : (
         <>
+        <div className='date-range-container'>
+        <div>
+          <select 
+            id="date-range-select"
+            aria-label="Select date range"
+            value={selectedDateRange} 
+            onChange={(e) => setSelectedDateRange(e.target.value)}
+          >
+            <option value="all">All time</option>
+            <option value="24h">Last 24 hours</option>
+            <option value="3d">Last 3 days</option>
+            <option value="7d">Last 7 days</option>
+          </select>
+        </div>
+        <button
+          onClick={handleProcessFigmaComments}
+          disabled={isProcessingComments}
+          aria-label="Summarise Figma Comments"
+          className="action-button"
+        >
+          {isProcessingComments ? 'Processing Comments...' : 'Summarise'}
+        </button>
+      </div>
           <div className='CommentsContainer' style={{ marginTop: '24px' }}>
-            <div className='date-range-container'>
-              <div style={{ marginBottom: '16px' }}>
-                <label htmlFor="date-range-select" style={{ display: 'block', marginBottom: '4px', fontWeight: '600' }}>
-                  Filter by date
-                </label>
-                <select 
-                  id="date-range-select"
-                  value={selectedDateRange} 
-                  onChange={(e) => setSelectedDateRange(e.target.value)}
-                  style={{
-                    maxWidth: '200px',
-                    width: '100%',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    border: '1px solid #949494',
-                    fontSize: '16px',
-                    backgroundColor: 'transparent',
-                    fontFamily: 'inherit'
-                  }}
-                >
-                  <option value="all">All time</option>
-                  <option value="24h">Last 24 hours</option>
-                  <option value="3d">Last 3 days</option>
-                  <option value="7d">Last 7 days</option>
-                </select>
-              </div>
-              <button
-                onClick={handleProcessFigmaComments}
-                disabled={isProcessingComments}
-                aria-label="Summarise Figma Comments"
-                className="action-button"
-              >
-                {isProcessingComments ? 'Processing Comments...' : 'Summarise Comments'}
-              </button>
-            </div>
+            
+            
             {commentsError && (
               <p role="alert" className="error-message" style={{ color: 'red', marginTop: '5px' }}>
                 {commentsError}
               </p>
             )}
-            {processedComments && !commentsError && (
+            {/* {processedComments && !commentsError && ( */}
               <div className="commentsPanel">
+              {isProcessingComments && (
+              <div className="processing-comments-container">
+                <Loader />
+              </div>
+            )}
                 <h3 style={{ marginTop: '0' }}>{processedComments}</h3>
-                <div className="space-y-4">
-                  {aiSummary && (
-                    <div className="prose prose-sm max-w-none ai-summary-content">
-                       {parseSummaryAndRenderWithReferences(aiSummary).map((element, index) => (
-                        <React.Fragment key={index}>{element}</React.Fragment>
-                      ))}
+                
+                {/* Tab Navigation */}
+                <div className="tab-navigation" >
+                  <button
+                    onClick={() => setActiveTab('summary')}
+                    className={`tab-button ${activeTab === 'summary' ? 'active' : ''}`}
+                  >
+                    Summary
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('json')}
+                    className={`tab-button ${activeTab === 'json' ? 'active' : ''}`}
+                  >
+                    Raw JSON
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                <div className="tab-content">
+                  {activeTab === 'summary' && (
+                    <div className="space-y-4">
+                      {aiSummary && (
+                        <div className="prose prose-sm max-w-none ai-summary-content">
+                           {renderSummaryWithInlineReferences(aiSummary)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {activeTab === 'json' && (
+                    <div>
+                      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px', background: '#f5f5f5', padding: '16px', borderRadius: '8px', overflow: 'auto', maxHeight: '400px' }}>
+                        {commentsData ? JSON.stringify(commentsData, null, 2) : 'No data'}
+                      </pre>
                     </div>
                   )}
                 </div>
-                <hr />
-                <details style={{ marginTop: '16px' }}>
-                  <summary>Raw JSON Data</summary>
-                  <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px' }}>
-                    {commentsData ? JSON.stringify(commentsData, null, 2) : 'No data'}
-                  </pre>
-                </details>
               </div>
-            )}      
+            {/* )}       */}
           </div>
         </>
       )}
