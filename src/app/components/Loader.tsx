@@ -78,7 +78,7 @@ export default function TextBlurTransition({
     return (
       <motion.div
         key={`sentence-${index}-${cycle}`}
-        className="loader-item absolute top-0 left-0 w-full text-center text-l md:text-xl font-medium text-gray-800"
+        className="loader-item"
         initial={{ 
           opacity: 0,
           y: 50
@@ -92,7 +92,7 @@ export default function TextBlurTransition({
           ease: "easeInOut"
         }}
       >
-        <div className="flex justify-center flex-wrap">
+        <div >
           {characters.map((char, charIndex) => {
             // Calculate delay so it starts from the right side
             const reverseIndex = characters.length - 1 - charIndex;
@@ -128,8 +128,8 @@ export default function TextBlurTransition({
   };
 
   return (
-    <div className="loader-container w-full h-full flex flex-col items-center justify-center relative overflow-hidden bg-gray-50 p-4">
-      <div className="loader-content max-w-2xl w-full relative h-36">
+    <div className="loader-container">
+      <div className="loader-content">
         {sentences.map((text, index) => renderCharacters(text, index))}
       </div>
     </div>

@@ -452,7 +452,7 @@ function App() {
         )}
         </div>
       {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export <br />Figma comments</h1> : <h1>Summarise and export <br />Figma comments</h1>}
-      <p className='primary-text'>Summarises and exports all unresolved comments in the file.</p>
+      <p className='secondary-text'>Summarises and exports all unresolved comments in the file.</p>
 
       {!isAuthenticated ? (
         <div className='connect-button-container'>
@@ -506,7 +506,7 @@ function App() {
             )}
             {/* {processedComments && !commentsError && ( */}
               <div className="commentsPanel">
-              <img src={emptyStateImage} alt="Empty State" className="empty-state-image" />
+              {!isProcessingComments && !processedComments && <img src={emptyStateImage} alt="Empty State" className="empty-state-image" />}
               {isProcessingComments && (
               <div className="processing-comments-container">
                 <Loader />

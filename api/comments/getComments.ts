@@ -140,7 +140,7 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
         const response = await axios.post(
           `${OPENROUTER_API_BASE_URL}/chat/completions`,
           {
-            model: 'deepseek/deepseek-r1-0528:free',
+            model: 'deepseek/deepseek-chat-v3-0324:free',
             messages: [
               {
                 role: 'system',
@@ -197,7 +197,7 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
       const response = await axios.post(
         `${OPENROUTER_API_BASE_URL}/chat/completions`,
         {
-          model: 'deepseek/deepseek-r1-0528:free',
+          model: 'deepseek/deepseek-chat-v3-0324:free',
           messages: [
             {
               role: 'system',

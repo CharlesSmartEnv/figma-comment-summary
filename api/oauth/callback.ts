@@ -90,8 +90,37 @@ router.get('/callback', async (req: Request, res: Response) => {
 
 
     res.status(200).send(`
-      <!DOCTYPE html><html><head><title>Authentication Successful</title></head>
-      <body><h1>Success!</h1><p>Please return to the Figma plugin.</p></body></html>
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authentication Successful</title>
+          <style>
+            body {
+              font-family: 'SF Pro' -apple-system, BlinkMacSystemFont, sans-serif;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              margin: 0;
+              background-color: #ffffff;
+              color: #333;
+            }
+            h1 {
+              margin-bottom: 16px;
+              color: #000000;
+            }
+            p {
+              margin: 0;
+              opacity: 0.8;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Success!</h1>
+          <p>Please return to the Figma plugin.</p>
+        </body>
+      </html>
     `);
 
   } catch (error: any) {
@@ -101,8 +130,39 @@ router.get('/callback', async (req: Request, res: Response) => {
     authSessionsStore.set(writeKey, session); // Save error state
 
     res.status(500).send(`
-      <!DOCTYPE html><html><head><title>Authentication Failed</title></head>
-      <body><h1>Authentication Failed</h1><p>Details: ${session.errorMessage}</p></body></html>
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authentication Failed</title>
+          <style>
+            body {
+              font-family: 'SF Pro' -apple-system, BlinkMacSystemFont, sans-serif;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              margin: 0;
+              background-color: #ffffff;
+              color: #333;
+            }
+            h1 {
+              margin-bottom: 16px;
+              color: #000000;
+            }
+            p {
+              margin: 0;
+              opacity: 0.8;
+              text-align: center;
+              max-width: 400px;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Authentication Failed</h1>
+          <p>Details: ${session.errorMessage}</p>
+        </body>
+      </html>
     `);
   }
 });
