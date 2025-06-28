@@ -57,7 +57,7 @@ app.use('/api/oauth', initiateRouter);
 app.use('/api/oauth', startAuthFlowRouter);
 app.use('/api/oauth', callbackRouter);
 app.use('/api/oauth', pollStatusRouter);
-app.post('/api/comments/getComments', handleGetFileComments);
+app.use('/api/comments', handleGetFileComments);
 
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
