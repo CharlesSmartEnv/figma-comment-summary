@@ -93,7 +93,7 @@ Create a `.env` file in the root directory:
 FIGMA_CLIENT_ID=your_figma_client_id
 FIGMA_CLIENT_SECRET=your_figma_client_secret
 FIGMA_REDIRECT_URI=your_redirect_uri
-GOOGLE_AI_API_KEY=your_google_ai_api_key
+OPENROUTER_API_KEY=your_google_ai_api_key
 ```
 
 
