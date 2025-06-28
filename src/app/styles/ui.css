@@ -52,7 +52,8 @@ ul{
   font-size: 15px;
 }
 .logo{
-  margin-right: 8px;
+  margin-left: 8px;
+  max-width: 24px;
 }
 
 .primary-text{

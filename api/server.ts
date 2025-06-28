@@ -21,7 +21,7 @@ app.use(cors({
     const allowedOrigins = [
       'https://www.figma.com',
       'https://figma.com',
-      'https://comment-summariser.onrender.com',
+      'https://figma-comment-export.onrender.com',
       'null'
     ];
     
@@ -57,7 +57,7 @@ app.use('/api/oauth', initiateRouter);
 app.use('/api/oauth', startAuthFlowRouter);
 app.use('/api/oauth', callbackRouter);
 app.use('/api/oauth', pollStatusRouter);
-app.use('/api/comments', handleGetFileComments);
+app.post('/api/comments/getComments', handleGetFileComments);
 
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

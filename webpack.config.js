@@ -117,7 +117,7 @@ module.exports = (env, argv) => {
         'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
         'process.env.NGROK_URL': JSON.stringify(process.env.NGROK_URL),
         'process.env.SERVER_URL': JSON.stringify(
-          process.env.NODE_ENV === 'production' 
+          isProduction 
             ? 'https://figma-comment-export.onrender.com'
             : process.env.NGROK_URL || 'http://localhost:3000'
         ),
