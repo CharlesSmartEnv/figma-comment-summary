@@ -376,6 +376,9 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
       const axiosError = error as AxiosError;
       if (axiosError.response) {
         console.error('Figma API Error Response:', axiosError.response.data);
+        console.error('Status:', axiosError.response.status);
+        console.error('Headers:', axiosError.response.headers);
+        console.error('Body:', axiosError.response.data);   // <-- most useful
         return res.status(axiosError.response.status || 500).json({
           error: 'Failed to fetch comments from Figma API',
           details: axiosError.response.data,
