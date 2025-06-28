@@ -8,6 +8,7 @@ Summarise crit sessions, catch-up after time-off, or remind yourself of the
 **[Install Comment Summariser from Figma Community](https://www.figma.com/community/plugin/1510186428265043923/Comment-Summariser)**
 
 
+
 ## ✨ Features
 
 - **OAuth Authentication**: Secure integration with Figma using OAuth 2.0 flow
