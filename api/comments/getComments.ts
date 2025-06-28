@@ -111,7 +111,7 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
 
   try {
     // For large comment sets, chunk them
-    if (sortedComments.length > 50) {
+    if (sortedComments.length > 100) {
       
       const chunks = chunkComments(sortedComments, 25);
       const chunkSummaries: string[] = [];
@@ -151,8 +151,8 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
                 content: `Please summarize these Figma comments (chunk ${i + 1}/${chunks.length}):\n\n${commentsText}`
               }
             ],
-            max_tokens: 300,
-            temperature: 0.7,
+            // max_tokens: 300,
+            // temperature: 0.7,
           },
           {
             headers: {
@@ -245,7 +245,7 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
 
 const handleGetFileComments = async (req: express.Request, res: express.Response) => {
 
-  const { fileKey, accessToken, dateRange } = req.body;
+  const { fileKey, accessToken, dateRange, proceedWithChunking } = req.body;
 
   if (!fileKey) {
     return res.status(400).json({ error: 'Missing fileKey in request body' });
@@ -347,6 +347,13 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
 
     const sortedComments = createParentChildSortedComments(filteredComments);
 
+    // Early warning check for large comment sets
+    if (sortedComments.length > 100 && !proceedWithChunking) {
+      return res.status(200).json({
+        requiresChunking: true,
+        message: `Found ${sortedComments.length} comments. Processing will require chunking and may take ${Math.ceil(sortedComments.length / 25) * 2} seconds or more. Do you want to proceed?`
+      });
+    }
 
     let aiSummary = '';
     try {

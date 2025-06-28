@@ -116,14 +116,14 @@ ul{
   align-items: center;
   margin-top: 24px;
 }
-.disconnect-button{
+.tertiary-button{
   background-color: transparent;
   color: #191919;
   font-family: "SF Mono", monospace;
   text-transform: uppercase;
   font-weight: 400;
 }
-.disconnect-button:hover{
+.tertiary-button:hover{
   background-color: rgba(0, 0, 0, 0.07);
 }
 hr{
@@ -237,4 +237,27 @@ select{
   width: 150px;
   margin: 40px auto;
   display: block;
+}
+.chunking-warning-dialog {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24px;
+}
+.warning-content{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.warning-content p, .warning-content h4{
+  margin: 0;
+}
+.warning-actions{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
 }

@@ -42,6 +42,8 @@ function App() {
   
   const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000';
 
+  const [showChunkingWarning, setShowChunkingWarning] = useState(false);
+
   const clearPolling = useCallback(() => {
     if (pollingIntervalIdRef.current) {
       clearInterval(pollingIntervalIdRef.current);
@@ -214,6 +216,18 @@ function App() {
     parent.postMessage({ pluginMessage: { type: 'request-figma-data-for-comment-processing' } }, '*');
   };
 
+  const handleProceedWithChunking = () => {
+    setShowChunkingWarning(false);
+    setIsProcessingComments(true);
+    // Re-trigger the processing with proceedWithChunking flag
+    parent.postMessage({ pluginMessage: { type: 'request-figma-data-for-comment-processing' } }, '*');
+  };
+
+  const handleCancelChunking = () => {
+    setShowChunkingWarning(false);
+    setIsProcessingComments(false);
+  };
+
   useEffect(() => {
     const handlePluginMessages = async (event: MessageEvent) => {
       if (!event.data || !event.data.pluginMessage) {
@@ -244,7 +258,12 @@ function App() {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ fileKey, accessToken, dateRange: selectedDateRange }),
+            body: JSON.stringify({ 
+              fileKey, 
+              accessToken, 
+              dateRange: selectedDateRange,
+              proceedWithChunking: showChunkingWarning // Only true if user already confirmed
+            }),
           });
 
           if (!backendResponse.ok) {
@@ -253,6 +272,15 @@ function App() {
           }
 
           const responseData = await backendResponse.json();
+          
+          // Check if we got a chunking warning
+          if (responseData.requiresChunking) {
+            setShowChunkingWarning(true);
+            setIsProcessingComments(false);
+            return;
+          }
+          
+          // Normal processing continues here...
           if (responseData.filteredComments && Array.isArray(responseData.filteredComments)) {
             const typedComments: FilteredComment[] = responseData.filteredComments;
             setCommentsData(typedComments);
@@ -299,7 +327,7 @@ function App() {
       window.removeEventListener('message', handlePluginMessages);
       clearPolling();
     };
-  }, [clearPolling, SERVER_URL, selectedDateRange]);
+  }, [clearPolling, SERVER_URL, selectedDateRange, showChunkingWarning]);
 
   // Helper function to process ID references within text content
   const processTextWithIdReferences = (text: string): (string | JSX.Element)[] => {
@@ -443,7 +471,7 @@ function App() {
               <img src={logo} alt="Figma Comments" className="logo" />
               <button
                       onClick={handleDisconnectFigma}
-                      className="disconnect-button"
+                      className="tertiary-button"
                       aria-label="Log out of Figma Account"
                     >
                       Log Out
@@ -459,7 +487,7 @@ function App() {
             <div className='connect-button-container'>
               <button
                 onClick={handleConnectFigma}
-                className="connect-button"
+                className="primary-button"
                 disabled={isAuthenticating}
                 aria-label="Connect Figma Account"
               ><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -495,7 +523,7 @@ function App() {
                 aria-label="Summarise Figma Comments"
                 className="action-button"
               >
-                {isProcessingComments ? 'Processing Comments...' : 'Summarise'}
+                {isProcessingComments ? 'Processing...' : 'Summarise'}
               </button>
             </div>
             </>
@@ -512,7 +540,30 @@ function App() {
             )}
             {/* {processedComments && !commentsError && ( */}
               <div className="commentsPanel">
-              {!isProcessingComments && !processedComments && <img src={emptyStateImage} alt="Empty State" className="empty-state-image" />}
+              {showChunkingWarning && (
+            <div className="chunking-warning-dialog">
+              <div className="warning-content">
+                <h4>⚠️ Large Comment Set Detected</h4>
+                <p>Comments will be chunked into smaller sets. <br />To avoid this try limiting the date range.</p>
+                <div className="warning-actions">
+                <button 
+                    onClick={handleCancelChunking}
+                    className="tertiary-button"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleProceedWithChunking}
+                    className="primary-button"
+                  >
+                    Proceed
+                  </button>
+                  
+                </div>
+              </div>
+            </div>
+          )}
+              {!isProcessingComments && !processedComments && !showChunkingWarning && <img src={emptyStateImage} alt="Empty State" className="empty-state-image" />}
               {isProcessingComments && (
               <div className="processing-comments-container">
                 <Loader />
@@ -561,6 +612,7 @@ function App() {
                )}
               </div>            
           </div>
+          
           </>
         )}
       </div>
