@@ -150,6 +150,10 @@ select{
   font-size: 15px;
   height: 40px;
 }
+select:focus{
+  outline: 2px solid #191919;
+  outline-offset: 2px;
+}
 .tab-navigation{
   border-bottom: 1px solid #e0e0e0;
   margin-bottom: 16px;

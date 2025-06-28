@@ -310,7 +310,7 @@ function App() {
         } catch (fetchError: any) {
           setCommentsError(fetchError.message || 'An error occurred while processing comments.');
           setProcessedComments(null);
-          setAiSummary('Failed to generate AI summary');
+          setAiSummary('Failed to generate AI summary. Probably because I\'m too cheap to pay for non rate limited API access');
           setCommentsMap(new Map());
         } finally {
           setIsProcessingComments(false);
