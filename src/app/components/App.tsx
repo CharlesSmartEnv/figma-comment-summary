@@ -486,7 +486,7 @@ function App() {
           )}
         </div>
         <div className={!isAuthenticated ? 'header-content-unauthenticated' : 'header-content'}>
-          {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export comments</h1> : <h1>Summarise and export comments</h1>}
+          {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export comments</h1> : <h1>Summarise and export <br /> Figma comments</h1>}
           <p className='secondary-text'>Summarises and exports all unresolved comments in the file.</p>
 
           {!isAuthenticated ? (

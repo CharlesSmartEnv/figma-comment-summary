@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { authSessionsStore } from '../utils/authStore'; // To verify the session if needed
+import { generatePKCEChallenge } from '../utils/pkce'; // Import PKCE utility
 
 const router = express.Router();
 
@@ -18,7 +19,28 @@ router.get('/start-auth-flow', async (req: Request, res: Response) => {
     return res.status(400).send('Invalid or expired authentication session link.');
   }
 
+  // SECURITY FIX: Verify PKCE challenge matches the stored verifier
+  if (!session.pkceVerifier) {
+    console.error(`Error in /start-auth-flow: Session for writeKey ${write_key} is missing pkceVerifier.`);
+    session.status = 'error';
+    session.errorMessage = 'Internal error: Missing PKCE verifier in session.';
+    authSessionsStore.set(write_key, session);
+    return res.status(500).send('Internal server error during authentication.');
+  }
+
   try {
+    // Generate the expected challenge from the stored verifier
+    const expectedChallenge = await generatePKCEChallenge(session.pkceVerifier);
+    
+    // Verify that the provided challenge matches the expected challenge
+    if (pkce_challenge !== expectedChallenge) {
+      console.error(`Error in /start-auth-flow: PKCE challenge mismatch for writeKey ${write_key}. Expected: ${expectedChallenge}, Received: ${pkce_challenge}`);
+      session.status = 'error';
+      session.errorMessage = 'Invalid PKCE challenge. Authentication request rejected.';
+      authSessionsStore.set(write_key, session);
+      return res.status(403).send('Invalid PKCE challenge. Authentication request rejected.');
+    }
+
     // Set the write_key in a secure, HttpOnly cookie.
     // This cookie will be sent back by the browser on subsequent requests to this domain,
     // including the /api/oauth/callback.
