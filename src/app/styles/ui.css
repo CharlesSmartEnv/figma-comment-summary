@@ -4,7 +4,7 @@ body {
   color: #191919;
   text-align: left;
   line-height: 150%;
-  background-color: #FCF7F3;
+  background-color: #FBFAF7;
   font-smooth: antialiased;
   -webkit-font-smoothing: antialiased;
   margin: 0;
@@ -72,9 +72,17 @@ ul{
 .secondary-text{
   color: #707070;
   margin:0;
-  text-align: left;
+  text-align: center;
 }
-
+.header-content-unauthenticated{
+  padding: 40px 0 40px 0;
+  min-height: 50vh;
+}
+.header-content{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 .commentsPanel{
   background-color: #ffffff;
   border-top: 1px solid transparent;
@@ -128,7 +136,6 @@ hr{
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 16px;
   margin-top: 24px;
   gap: 8px;

@@ -96,7 +96,7 @@ router.get('/callback', async (req: Request, res: Response) => {
           <title>Authentication Successful</title>
           <style>
             body {
-              font-family: 'SF Pro' -apple-system, BlinkMacSystemFont, sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, sans-serif;
               display: flex;
               flex-direction: column;
               justify-content: center;
@@ -136,7 +136,7 @@ router.get('/callback', async (req: Request, res: Response) => {
           <title>Authentication Failed</title>
           <style>
             body {
-              font-family: 'SF Pro' -apple-system, BlinkMacSystemFont, sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, sans-serif;
               display: flex;
               flex-direction: column;
               justify-content: center;

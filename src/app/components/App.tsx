@@ -429,7 +429,7 @@ function App() {
       style={{ 
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat',
       }}>
         
@@ -438,65 +438,71 @@ function App() {
          <span className='grid-line-vertical right'></span>
          <span className='grid-line-horizontal bottom'></span>
         <div className='header'>
-        {isAuthenticated && (
-          <>
-            <img src={logo} alt="Figma Comments" className="logo" />
-            <button
-                    onClick={handleDisconnectFigma}
-                    className="disconnect-button"
-                    aria-label="Log out of Figma Account"
-                  >
-                    Log Out
-            </button>
-          </>
-        )}
-        </div>
-      {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export <br />Figma comments</h1> : <h1>Summarise and export <br />Figma comments</h1>}
-      <p className='secondary-text'>Summarises and exports all unresolved comments in the file.</p>
-
-      {!isAuthenticated ? (
-        <div className='connect-button-container'>
-          <button
-            onClick={handleConnectFigma}
-            className="connect-button"
-            disabled={isAuthenticating}
-            aria-label="Connect Figma Account"
-          ><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6.91775 19.1667C5.4143 19.1667 4.19553 17.9176 4.19553 16.3768C4.19553 14.836 5.4143 13.587 6.91775 13.587H9.63997V16.3768C9.63997 17.9176 8.42119 19.1667 6.91775 19.1667ZM13.1112 6.41305H10.389V0.833344H13.1112C14.6146 0.833344 15.8334 2.0824 15.8334 3.6232C15.8334 5.164 14.6146 6.41305 13.1112 6.41305ZM6.88897 6.41305H9.61119V0.833344H6.88897C5.38553 0.833344 4.16675 2.0824 4.16675 3.6232C4.16675 5.164 5.38553 6.41305 6.88897 6.41305ZM6.88897 12.7899H9.61119V7.21015H6.88897C5.38553 7.21015 4.16675 8.45921 4.16675 10C4.16675 11.5408 5.38553 12.7899 6.88897 12.7899ZM12.7223 7.21015C12.1035 7.21015 11.51 7.46209 11.0724 7.91055C10.6348 8.35901 10.389 8.96725 10.389 9.60146C10.389 10.2357 10.6348 10.8439 11.0724 11.2924C11.51 11.7408 12.1035 11.9928 12.7223 11.9928C13.3411 11.9928 13.9346 11.7408 14.3722 11.2924C14.8098 10.8439 15.0556 10.2357 15.0556 9.60146C15.0556 8.96725 14.8098 8.35901 14.3722 7.91055C13.9346 7.46209 13.3411 7.21015 12.7223 7.21015Z" fill="white"/>
-          </svg>
-          
-            {isAuthenticating ? 'Authenticating...' : 'Connect Figma'}
-          </button>
-          {isAuthenticating && <p className='secondary-text' style={{ marginTop: '16px', textAlign: 'center' }}>😬 I'm too cheap to pay for a server, so it might take 30s+ to load the first time</p>}
-          {authError && (
-            <p role="alert" className="error-message" style={{ color: 'red' }}>{authError}</p>
+          {isAuthenticated && (
+            <>
+              <img src={logo} alt="Figma Comments" className="logo" />
+              <button
+                      onClick={handleDisconnectFigma}
+                      className="disconnect-button"
+                      aria-label="Log out of Figma Account"
+                    >
+                      Log Out
+              </button>
+            </>
           )}
         </div>
-      ) : (
-        <>
-        <div className='date-range-container'>
-        <div>
-          <select 
-            id="date-range-select"
-            aria-label="Select date range"
-            value={selectedDateRange} 
-            onChange={(e) => setSelectedDateRange(e.target.value)}
-          >
-            <option value="all">All time</option>
-            <option value="24h">Last 24 hours</option>
-            <option value="3d">Last 3 days</option>
-            <option value="7d">Last 7 days</option>
-          </select>
+        <div className={!isAuthenticated ? 'header-content-unauthenticated' : 'header-content'}>
+          {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export <br />Figma comments</h1> : <h1>Summarise and export <br />Figma comments</h1>}
+          <p className='secondary-text'>Summarises and exports all unresolved comments in the file.</p>
+
+          {!isAuthenticated ? (
+            <div className='connect-button-container'>
+              <button
+                onClick={handleConnectFigma}
+                className="connect-button"
+                disabled={isAuthenticating}
+                aria-label="Connect Figma Account"
+              ><svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6.91775 19.1667C5.4143 19.1667 4.19553 17.9176 4.19553 16.3768C4.19553 14.836 5.4143 13.587 6.91775 13.587H9.63997V16.3768C9.63997 17.9176 8.42119 19.1667 6.91775 19.1667ZM13.1112 6.41305H10.389V0.833344H13.1112C14.6146 0.833344 15.8334 2.0824 15.8334 3.6232C15.8334 5.164 14.6146 6.41305 13.1112 6.41305ZM6.88897 6.41305H9.61119V0.833344H6.88897C5.38553 0.833344 4.16675 2.0824 4.16675 3.6232C4.16675 5.164 5.38553 6.41305 6.88897 6.41305ZM6.88897 12.7899H9.61119V7.21015H6.88897C5.38553 7.21015 4.16675 8.45921 4.16675 10C4.16675 11.5408 5.38553 12.7899 6.88897 12.7899ZM12.7223 7.21015C12.1035 7.21015 11.51 7.46209 11.0724 7.91055C10.6348 8.35901 10.389 8.96725 10.389 9.60146C10.389 10.2357 10.6348 10.8439 11.0724 11.2924C11.51 11.7408 12.1035 11.9928 12.7223 11.9928C13.3411 11.9928 13.9346 11.7408 14.3722 11.2924C14.8098 10.8439 15.0556 10.2357 15.0556 9.60146C15.0556 8.96725 14.8098 8.35901 14.3722 7.91055C13.9346 7.46209 13.3411 7.21015 12.7223 7.21015Z" fill="white"/>
+              </svg>
+              
+                {isAuthenticating ? 'Authenticating...' : 'Connect Figma'}
+              </button>
+              {isAuthenticating && <p className='secondary-text' style={{ marginTop: '16px', textAlign: 'center' }}>😬 I'm too cheap to pay for a server, so it might take 30s+ to load the first time</p>}
+              {authError && (
+                <p role="alert" className="error-message" style={{ color: 'red' }}>{authError}</p>
+              )}
+            </div>
+          ) : (
+            <>
+            <div className='date-range-container'>
+              <div>
+                <select 
+                  id="date-range-select"
+                  aria-label="Select date range"
+                  value={selectedDateRange} 
+                  onChange={(e) => setSelectedDateRange(e.target.value)}
+                >
+                  <option value="all">All time</option>
+                  <option value="24h">Last 24 hours</option>
+                  <option value="3d">Last 3 days</option>
+                  <option value="7d">Last 7 days</option>
+                </select>
+              </div>
+              <button
+                onClick={handleProcessFigmaComments}
+                disabled={isProcessingComments}
+                aria-label="Summarise Figma Comments"
+                className="action-button"
+              >
+                {isProcessingComments ? 'Processing Comments...' : 'Summarise'}
+              </button>
+            </div>
+            </>
+          )}
         </div>
-        <button
-          onClick={handleProcessFigmaComments}
-          disabled={isProcessingComments}
-          aria-label="Summarise Figma Comments"
-          className="action-button"
-        >
-          {isProcessingComments ? 'Processing Comments...' : 'Summarise'}
-        </button>
-      </div>
+        {isAuthenticated && (
+          <>
           <div className='CommentsContainer'>
             
             {commentsError && (
@@ -553,13 +559,11 @@ function App() {
                   </div>
                 </>
                )}
-              </div>
-            
-            {/* )}       */}
+              </div>            
           </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
