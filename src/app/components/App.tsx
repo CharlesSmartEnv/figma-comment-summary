@@ -43,6 +43,7 @@ function App() {
   const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000';
 
   const [showChunkingWarning, setShowChunkingWarning] = useState(false);
+  const [hasConfirmedChunking, setHasConfirmedChunking] = useState(false);
 
   const clearPolling = useCallback(() => {
     if (pollingIntervalIdRef.current) {
@@ -199,7 +200,9 @@ function App() {
     setProcessedComments(null);
     setAiSummary('');
     setCommentsError(null);
-    setCommentsMap(new Map()); 
+    setCommentsMap(new Map());
+    setShowChunkingWarning(false);
+    setHasConfirmedChunking(false);
     clearPolling();
   };
 
@@ -212,12 +215,14 @@ function App() {
     setProcessedComments(null);
     setAiSummary(''); // Clear previous summary
     setCommentsMap(new Map()); // Clear previous map
+    setHasConfirmedChunking(false); // Reset chunking confirmation
 
     parent.postMessage({ pluginMessage: { type: 'request-figma-data-for-comment-processing' } }, '*');
   };
 
   const handleProceedWithChunking = () => {
     setShowChunkingWarning(false);
+    setHasConfirmedChunking(true); // Set confirmation flag
     setIsProcessingComments(true);
     // Re-trigger the processing with proceedWithChunking flag
     parent.postMessage({ pluginMessage: { type: 'request-figma-data-for-comment-processing' } }, '*');
@@ -225,6 +230,7 @@ function App() {
 
   const handleCancelChunking = () => {
     setShowChunkingWarning(false);
+    setHasConfirmedChunking(false); // Reset confirmation flag
     setIsProcessingComments(false);
   };
 
@@ -262,7 +268,7 @@ function App() {
               fileKey, 
               accessToken, 
               dateRange: selectedDateRange,
-              proceedWithChunking: showChunkingWarning // Only true if user already confirmed
+              proceedWithChunking: hasConfirmedChunking // Use the confirmation flag instead
             }),
           });
 
@@ -327,7 +333,7 @@ function App() {
       window.removeEventListener('message', handlePluginMessages);
       clearPolling();
     };
-  }, [clearPolling, SERVER_URL, selectedDateRange, showChunkingWarning]);
+  }, [clearPolling, SERVER_URL, selectedDateRange, showChunkingWarning, hasConfirmedChunking]);
 
   // Helper function to process ID references within text content
   const processTextWithIdReferences = (text: string): (string | JSX.Element)[] => {
@@ -480,7 +486,7 @@ function App() {
           )}
         </div>
         <div className={!isAuthenticated ? 'header-content-unauthenticated' : 'header-content'}>
-          {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export <br />Figma comments</h1> : <h1>Summarise and export <br />Figma comments</h1>}
+          {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export comments</h1> : <h1>Summarise and export comments</h1>}
           <p className='secondary-text'>Summarises and exports all unresolved comments in the file.</p>
 
           {!isAuthenticated ? (
