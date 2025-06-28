@@ -5,6 +5,7 @@
   display: inline-block;
   margin-left: 0.125rem; 
   margin-right: 0.125rem; 
+  margin-top: -2px;
   vertical-align: middle;
 }
 

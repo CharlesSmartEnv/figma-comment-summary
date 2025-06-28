@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 
 import logo from '../assets/logo.svg';
 import '../styles/ui.css';
 import backgroundImage from '../assets/background.jpg';
+import emptyStateImage from '../assets/empty-illustration.svg';
 const ReactMarkdown = lazy(() => import('react-markdown'));
 import CommentReferenceBadge from './CommentReferenceBadge';
 import Loader from './Loader';
@@ -430,20 +431,27 @@ function App() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        minHeight: '100vh'
       }}>
+        
+         <span className='grid-line-horizontal top'></span>
+         <span className='grid-line-vertical left'></span>
+         <span className='grid-line-vertical right'></span>
+         <span className='grid-line-horizontal bottom'></span>
         <div className='header'>
         {isAuthenticated && (
-          <button
-                  onClick={handleDisconnectFigma}
-                  className="disconnect-button"
-                  aria-label="Log out of Figma Account"
-                >
-                  Log Out
-          </button>
+          <>
+            <img src={logo} alt="Figma Comments" className="logo" />
+            <button
+                    onClick={handleDisconnectFigma}
+                    className="disconnect-button"
+                    aria-label="Log out of Figma Account"
+                  >
+                    Log Out
+            </button>
+          </>
         )}
         </div>
-      <h1>Summarise and export <br />Figma comments</h1>
+      {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export <br />Figma comments</h1> : <h1>Summarise and export <br />Figma comments</h1>}
       <p className='primary-text'>Summarises and exports all unresolved comments in the file.</p>
 
       {!isAuthenticated ? (
@@ -489,8 +497,7 @@ function App() {
           {isProcessingComments ? 'Processing Comments...' : 'Summarise'}
         </button>
       </div>
-          <div className='CommentsContainer' style={{ marginTop: '24px' }}>
-            
+          <div className='CommentsContainer'>
             
             {commentsError && (
               <p role="alert" className="error-message" style={{ color: 'red', marginTop: '5px' }}>
@@ -499,6 +506,7 @@ function App() {
             )}
             {/* {processedComments && !commentsError && ( */}
               <div className="commentsPanel">
+              <img src={emptyStateImage} alt="Empty State" className="empty-state-image" />
               {isProcessingComments && (
               <div className="processing-comments-container">
                 <Loader />
@@ -506,43 +514,47 @@ function App() {
             )}
                 <h3 style={{ marginTop: '0' }}>{processedComments}</h3>
                 
-                {/* Tab Navigation */}
-                <div className="tab-navigation" >
-                  <button
-                    onClick={() => setActiveTab('summary')}
-                    className={`tab-button ${activeTab === 'summary' ? 'active' : ''}`}
-                  >
-                    Summary
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('json')}
-                    className={`tab-button ${activeTab === 'json' ? 'active' : ''}`}
-                  >
-                    Raw JSON
-                  </button>
-                </div>
+              {processedComments && (
+                <>
+                  <div className="tab-navigation" >
+                    <button
+                      onClick={() => setActiveTab('summary')}
+                      className={`tab-button ${activeTab === 'summary' ? 'active' : ''}`}
+                    >
+                      Summary
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('json')}
+                      className={`tab-button ${activeTab === 'json' ? 'active' : ''}`}
+                    >
+                      Raw JSON
+                    </button>
+                  </div>
 
-                {/* Tab Content */}
-                <div className="tab-content">
-                  {activeTab === 'summary' && (
-                    <div className="space-y-4">
-                      {aiSummary && (
-                        <div className="prose prose-sm max-w-none ai-summary-content">
-                           {renderSummaryWithInlineReferences(aiSummary)}
-                        </div>
-                      )}
-                    </div>
-                  )}
                   
-                  {activeTab === 'json' && (
-                    <div>
-                      <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px', background: '#f5f5f5', padding: '16px', borderRadius: '8px', overflow: 'auto', maxHeight: '400px' }}>
-                        {commentsData ? JSON.stringify(commentsData, null, 2) : 'No data'}
-                      </pre>
-                    </div>
-                  )}
-                </div>
+                  <div className="tab-content">
+                    {activeTab === 'summary' && (
+                      <div className="space-y-4">
+                        {aiSummary && (
+                          <div className="prose prose-sm max-w-none ai-summary-content">
+                             {renderSummaryWithInlineReferences(aiSummary)}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {activeTab === 'json' && (
+                      <div>
+                        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', fontSize: '12px', background: '#f5f5f5', padding: '16px', borderRadius: '8px', overflow: 'auto', maxHeight: '400px' }}>
+                          {commentsData ? JSON.stringify(commentsData, null, 2) : 'No data'}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </>
+               )}
               </div>
+            
             {/* )}       */}
           </div>
         </>
