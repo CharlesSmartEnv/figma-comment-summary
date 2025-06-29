@@ -6,7 +6,6 @@ config();
 const FIGMA_API_BASE_URL = 'https://api.figma.com/v1';
 const OPENROUTER_API_BASE_URL = 'https://openrouter.ai/api/v1';
 
-// OpenRouter configuration
 const openRouterApiKey = process.env.OPENROUTER_API_KEY || (() => {
   throw new Error('OPENROUTER_API_KEY environment variable is not set');
 })();
@@ -83,9 +82,7 @@ const extractCommentData = (comments: any[]): FilteredComment[] => {
     }));
 };
 
-/**
- * Chunks comments into smaller groups to avoid token limits
- */
+
 const chunkComments = (comments: FilteredComment[], maxChunkSize: number = 20): FilteredComment[][] => {
   const chunks: FilteredComment[][] = [];
   for (let i = 0; i < comments.length; i += maxChunkSize) {
@@ -151,8 +148,6 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
                 content: `Please summarize these Figma comments (chunk ${i + 1}/${chunks.length}):\n\n${commentsText}`
               }
             ],
-            // max_tokens: 300,
-            // temperature: 0.7,
           },
           {
             headers: {
@@ -208,8 +203,6 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
               content: `Please summarize these Figma comments:\n\n${commentsText}`
             }
           ],
-          // max_tokens: 300,
-          // temperature: 0.7,
         },
         {
           headers: {
@@ -256,8 +249,7 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
   }
 
   try {
-    console.log('Figma Filekey:', fileKey);
-    console.log('accessToken (first 8):', accessToken?.slice(0,8));
+
     const response = await axios.get(
       `${FIGMA_API_BASE_URL}/files/${fileKey}/comments`,
       {
@@ -269,13 +261,9 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
     );
     const comments = response.data.comments;
     
-    // Apply date range filtering first
     const dateFilteredComments = filterCommentsByDateRange(comments || [], dateRange);
-    
-    // Extract filtered comment data for AI processing
     const filteredComments = extractCommentData(dateFilteredComments);
 
-    // Create a proper parent-child sorted structure
     const createParentChildSortedComments = (comments: FilteredComment[]): FilteredComment[] => {
       const commentMap = new Map<string, FilteredComment>();
       const childrenMap = new Map<string, FilteredComment[]>();
@@ -328,7 +316,6 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
         }
       };
 
-      // Final array
       const result: FilteredComment[] = [];
       
       rootComments.forEach(rootComment => {
@@ -348,7 +335,6 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
 
     const sortedComments = createParentChildSortedComments(filteredComments);
 
-    // Early warning check for large comment sets
     if (sortedComments.length > 100 && !proceedWithChunking) {
       return res.status(200).json({
         requiresChunking: true,
@@ -376,10 +362,6 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response) {
-        console.error('Figma API Error Response:', axiosError.response.data);
-        console.error('Status:', axiosError.response.status);
-        console.error('Headers:', axiosError.response.headers);
-        console.error('Body:', axiosError.response.data);   // <-- most useful
         return res.status(axiosError.response.status || 500).json({
           error: 'Failed to fetch comments from Figma API',
           details: axiosError.response.data,
