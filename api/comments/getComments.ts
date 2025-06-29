@@ -256,6 +256,8 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
   }
 
   try {
+    console.log('Figma Filekey:', fileKey);
+    console.log('accessToken (first 8):', accessToken?.slice(0,8));
     const response = await axios.get(
       `${FIGMA_API_BASE_URL}/files/${fileKey}/comments`,
       {
@@ -265,7 +267,6 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
         },
       }
     );
-    console.log('Figma Filekey:', fileKey);
     const comments = response.data.comments;
     
     // Apply date range filtering first
