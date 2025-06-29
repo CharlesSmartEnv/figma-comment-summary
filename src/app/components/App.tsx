@@ -33,7 +33,7 @@ function App() {
   const [isProcessingComments, setIsProcessingComments] = useState(false);
   const [commentsError, setCommentsError] = useState<string | null>(null);
   const [processedComments, setProcessedComments] = useState<string | null>(null);
-  const [commentsData, setCommentsData] = useState<FilteredComment[] | null>(null); // Typed commentsData
+  const [commentsData, setCommentsData] = useState<FilteredComment[] | null>(null);
   const [aiSummary, setAiSummary] = useState<string>('');
   const [commentsMap, setCommentsMap] = useState<Map<string, FilteredComment>>(new Map());
   
@@ -130,14 +130,14 @@ function App() {
       if (currentReadKeyRef.current) {
         pollForToken(currentReadKeyRef.current);
       }
-    }, POLLING_INTERVAL_MS) as any as number; // Added type assertion for setInterval return
+    }, POLLING_INTERVAL_MS) as any as number;
 
     pollingTimeoutIdRef.current = setTimeout(() => {
       if (pollingIntervalIdRef.current) { 
         setAuthError('Authentication timed out. Please try again.');
         clearPolling();
       }
-    }, POLLING_TIMEOUT_MS) as any as number; // Added type assertion for setTimeout return
+    }, POLLING_TIMEOUT_MS) as any as number;
 
   }, [pollForToken, clearPolling]);
 
@@ -213,24 +213,23 @@ function App() {
     setIsProcessingComments(true);
     setCommentsError(null);
     setProcessedComments(null);
-    setAiSummary(''); // Clear previous summary
-    setCommentsMap(new Map()); // Clear previous map
-    setHasConfirmedChunking(false); // Reset chunking confirmation
+    setAiSummary('');
+    setCommentsMap(new Map());
+    setHasConfirmedChunking(false);
 
     parent.postMessage({ pluginMessage: { type: 'request-figma-data-for-comment-processing' } }, '*');
   };
 
   const handleProceedWithChunking = () => {
     setShowChunkingWarning(false);
-    setHasConfirmedChunking(true); // Set confirmation flag
+    setHasConfirmedChunking(true);
     setIsProcessingComments(true);
-    // Re-trigger the processing with proceedWithChunking flag
     parent.postMessage({ pluginMessage: { type: 'request-figma-data-for-comment-processing' } }, '*');
   };
 
   const handleCancelChunking = () => {
     setShowChunkingWarning(false);
-    setHasConfirmedChunking(false); // Reset confirmation flag
+    setHasConfirmedChunking(false);
     setIsProcessingComments(false);
   };
 
@@ -279,14 +278,12 @@ function App() {
 
           const responseData = await backendResponse.json();
           
-          // Check if we got a chunking warning
           if (responseData.requiresChunking) {
             setShowChunkingWarning(true);
             setIsProcessingComments(false);
             return;
           }
           
-          // Normal processing continues here...
           if (responseData.filteredComments && Array.isArray(responseData.filteredComments)) {
             const typedComments: FilteredComment[] = responseData.filteredComments;
             setCommentsData(typedComments);
@@ -335,7 +332,6 @@ function App() {
     };
   }, [clearPolling, SERVER_URL, selectedDateRange, showChunkingWarning, hasConfirmedChunking]);
 
-  // Helper function to process ID references within text content
   const processTextWithIdReferences = (text: string): (string | JSX.Element)[] => {
     if (!text || typeof text !== 'string' || commentsMap.size === 0) {
       return [text];
@@ -348,10 +344,8 @@ function App() {
     
     return parts.map((part, index) => {
       if (index % 2 === 0) {
-        // Regular text part
         return part;
       } else {
-        // ID reference part
         const idContentMatch = part.match(idContentPattern);
         if (idContentMatch && idContentMatch[1]) {
           const idsString = idContentMatch[1];
@@ -385,7 +379,6 @@ function App() {
     }).filter(Boolean);
   };
 
-  // Helper function to process children recursively
   const processChildren = (children: React.ReactNode): React.ReactNode => {
     if (typeof children === 'string') {
       const processed = processTextWithIdReferences(children);
@@ -444,7 +437,6 @@ function App() {
     ),
   };
 
-  // Simplified function to render summary with inline references
   const renderSummaryWithInlineReferences = (summary: string): JSX.Element => {
     if (!summary) return <div>No summary available</div>;
     
@@ -486,7 +478,7 @@ function App() {
           )}
         </div>
         <div className={!isAuthenticated ? 'header-content-unauthenticated' : 'header-content'}>
-          {isAuthenticated ? <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export comments</h1> : <h1>Summarise and export <br /> Figma comments</h1>}
+          <h1  style={{fontSize: '24px', marginBottom: '8px'}}>Summarise and export comments</h1> 
           <p className='secondary-text'>Summarises and exports all unresolved comments in the file.</p>
 
           {!isAuthenticated ? (
