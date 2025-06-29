@@ -265,7 +265,7 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
         },
       }
     );
-
+    console.log('Figma Filekey:', fileKey);
     const comments = response.data.comments;
     
     // Apply date range filtering first
