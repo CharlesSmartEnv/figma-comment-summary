@@ -6,7 +6,7 @@ const mode = process.argv[2]; // 'dev' or 'prod'
 
 const baseManifest = {
   "name": "Comment Summary & Export ✨",
-  "id": "1520926582771663137",
+  "id": "1521063587587196294",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",

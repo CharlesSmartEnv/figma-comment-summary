@@ -55,7 +55,7 @@ router.get('/start-auth-flow', async (req: Request, res: Response) => {
     const figmaAuthUrl = new URL('https://www.figma.com/oauth'); // Official authorization endpoint
     figmaAuthUrl.searchParams.append('client_id', process.env.FIGMA_CLIENT_ID!);
     figmaAuthUrl.searchParams.append('redirect_uri', process.env.FIGMA_REDIRECT_URI!); // Your /api/oauth/callback
-    figmaAuthUrl.searchParams.append('scope', 'files:read'); // Or any other scopes you need
+    figmaAuthUrl.searchParams.append('scope', 'file_comments:read, file_content:read'); // Or any other scopes you need
     figmaAuthUrl.searchParams.append('state', write_key); // The write_key IS the state parameter
     figmaAuthUrl.searchParams.append('code_challenge', pkce_challenge);
     figmaAuthUrl.searchParams.append('code_challenge_method', 'S256');
