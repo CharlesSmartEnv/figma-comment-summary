@@ -519,7 +519,10 @@ function App() {
         {isAuthenticated && (
           <>
             <div className="date-range-header">
-              <h3>Current file</h3>
+              <div className="date-range-header-left">
+                <h3>Current file</h3>
+                <p className="secondary-text">{processedComments || "All unresolved comments"}</p>
+              </div>
               <div className="date-range-container">
                 <select
                   id="date-range-select"
@@ -616,8 +619,7 @@ function App() {
                 <div className="tab-content">
                   {activeTab === "summary" && (
                     <>
-                      <p className="secondary-text" style={{ marginTop: "0" }}>{processedComments}</p>
-                      <div className="space-y-4">
+                      <div>
                         {aiSummary && (
                           <div className="ai-summary-content">
                             {renderSummaryWithInlineReferences(aiSummary)}
