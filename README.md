@@ -5,7 +5,7 @@ Summarise crit sessions, catch-up after time-off, or remind yourself of the
 
 ## 🔗 Figma Plugin
 
-**[Install Comment Summariser from Figma Community](https://www.figma.com/community/plugin/1510186428265043923/Comment-Summariser)**
+**[Install Comment Summary from Figma Community](https://www.figma.com/community/plugin/1521063587587196294/comment-summary)**
 
 
 
@@ -14,7 +14,6 @@ Summarise crit sessions, catch-up after time-off, or remind yourself of the
 - **OAuth Authentication**: Secure integration with Figma using OAuth 2.0 flow
 - **Comment Fetching**: Automatically retrieves comments from your Figma documents via REST API
 - **AI-Powered Summarization**: Uses AI to generate concise summaries of comment threads
-- **Date Range Filtering**: Filter comments by specific date ranges
 
 
 ## 🏗️ Architecture
@@ -50,7 +49,7 @@ npm install
 ### 2. Plugin Development
 ```bash
 # Build and watch the plugin
-yarn build:watch
+npm run build:dev
 
 # In Figma: Plugins → Development → Import plugin from manifest...
 # Select the manifest.json file from this repo
@@ -59,31 +58,13 @@ yarn build:watch
 ### 3. Server Development
 ```bash
 # Start the development server
-yarn dev:server
+npm run dev:server
 # Server runs on http://localhost:3000
 ```
 
 ## 🔧 Local Development Setup
 
 For full OAuth functionality during development, you'll need to set up local tunneling and configure various components. See detailed [Local Development Guide](./local_development.md) 
-
-
-### Key Development Commands
-
-```bash
-# Plugin Development
-yarn build:watch          # Watch mode for plugin development
-yarn build                # Production build
-
-# Server Development  
-yarn dev:server           # Development server with hot reload
-yarn start:server         # Start with tsx
-yarn build:server         # Build server TypeScript
-yarn start                # Start production server
-
-# Code Quality
-yarn prettier:format      # Format code with Prettier
-```
 
 
 ## 🔐 Environment Variables
@@ -100,6 +81,6 @@ OPENROUTER_API_KEY=your_google_ai_api_key
 
 ## 📝 License
 
-This project is licensed under the MIT License use it however you want, but please note: I don't know what I'm doing and the oAuth flow is heavily vibe coded so 
+This project is licensed under the MIT License use it however you want, but please note: I don't know what I'm doing and the oAuth flow is heavily vibe coded so take caution when using it for published plugins and code.
 
 
