@@ -1,5 +1,5 @@
 {
-  "name": "comment-summary-export",
+  "name": "comment-summary",
   "version": "1.0.0",
   "description": "This plugin implements a OAuth flow for Figma then gets and summarises comments via the REST api using an express.js server",
   "license": "ISC",
