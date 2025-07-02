@@ -45,6 +45,38 @@ function App() {
   const [showChunkingWarning, setShowChunkingWarning] = useState(false);
   const [hasConfirmedChunking, setHasConfirmedChunking] = useState(false);
 
+  const [figmaUrl, setFigmaUrl] = useState<string>('');
+  const [figmaUrlError, setFigmaUrlError] = useState<string | null>(null);
+
+  // Function to extract file key from Figma URL
+  const extractFileKeyFromUrl = (url: string): string | null => {
+    try {
+      // Reset URL error when attempting extraction
+      setFigmaUrlError(null);
+      
+      if (!url.trim()) {
+        return null;
+      }
+
+      // Match various Figma URL patterns
+      // Pattern: https://www.figma.com/design/{fileKey}/{fileName}...
+      // Pattern: https://figma.com/design/{fileKey}/{fileName}...
+      // Pattern: https://www.figma.com/file/{fileKey}/{fileName}...
+      const regex = /^https?:\/\/(?:www\.)?figma\.com\/(?:design|file)\/([a-zA-Z0-9]+)(?:\/|$)/;
+      const match = url.match(regex);
+      
+      if (match && match[1]) {
+        return match[1];
+      } else {
+        setFigmaUrlError('Invalid Figma URL format. Please use a valid Figma file URL.');
+        return null;
+      }
+    } catch (error) {
+      setFigmaUrlError('Error parsing Figma URL.');
+      return null;
+    }
+  };
+
   const clearPolling = useCallback(() => {
     if (pollingIntervalIdRef.current) {
       clearInterval(pollingIntervalIdRef.current);
@@ -210,6 +242,16 @@ function App() {
     if (isProcessingComments) {
       return;
     }
+
+    // Extract file key from URL first
+    const fileKey = extractFileKeyFromUrl(figmaUrl);
+    if (!fileKey) {
+      if (!figmaUrl.trim()) {
+        setFigmaUrlError('Please enter a Figma file URL.');
+      }
+      return;
+    }
+
     setIsProcessingComments(true);
     setCommentsError(null);
     setProcessedComments(null);
@@ -217,14 +259,33 @@ function App() {
     setCommentsMap(new Map());
     setHasConfirmedChunking(false);
 
-    parent.postMessage({ pluginMessage: { type: 'request-figma-data-for-comment-processing' } }, '*');
+    parent.postMessage({ 
+      pluginMessage: { 
+        type: 'request-figma-data-for-comment-processing',
+        fileKey: fileKey 
+      } 
+    }, '*');
   };
 
   const handleProceedWithChunking = () => {
+    // Extract file key from URL
+    const fileKey = extractFileKeyFromUrl(figmaUrl);
+    if (!fileKey) {
+      if (!figmaUrl.trim()) {
+        setFigmaUrlError('Please enter a Figma file URL.');
+      }
+      return;
+    }
+
     setShowChunkingWarning(false);
     setHasConfirmedChunking(true);
     setIsProcessingComments(true);
-    parent.postMessage({ pluginMessage: { type: 'request-figma-data-for-comment-processing' } }, '*');
+    parent.postMessage({ 
+      pluginMessage: { 
+        type: 'request-figma-data-for-comment-processing',
+        fileKey: fileKey // Pass the extracted file key
+      } 
+    }, '*');
   };
 
   const handleCancelChunking = () => {
@@ -520,10 +581,42 @@ function App() {
           <>
             <div className="date-range-header">
               <div className="date-range-header-left">
-                <h3>Current file</h3>
-                <p className="secondary-text">{processedComments || "All unresolved comments"}</p>
+                <h3>Summarise all comments</h3>
+                {/* <p className="secondary-text">{processedComments || "All unresolved comments"}</p> */}
+                
+                {/* Figma URL Input */}
+                <div className="figma-url-container" style={{ marginTop: '12px' }}>
+                  <label htmlFor="figma-url-input" className="url-input-label">
+                    Figma file URL
+                  </label>
+                  <input
+                    id="figma-url-input"
+                    type="url"
+                    value={figmaUrl}
+                    onChange={(e) => {
+                      setFigmaUrl(e.target.value);
+                      setFigmaUrlError(null); // Clear error when user types
+                    }}
+                    placeholder="https://www.figma.com/design/KtVYgefRcRfvFYgUlJxiN7/..."
+                    className="url-input"
+                  />
+                  {figmaUrlError && (
+                    <p className="error-message" style={{ 
+                      color: '#ff4444', 
+                      fontSize: '12px', 
+                      marginTop: '4px',
+                      marginBottom: '0'
+                    }}>
+                      {figmaUrlError}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="date-range-container">
+                <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                <label htmlFor="date-range-select" className="url-input-label">
+                      Date range
+                </label>
                 <select
                   id="date-range-select"
                   aria-label="Select date range"
@@ -535,7 +628,7 @@ function App() {
                   <option value="3d">Last 3 days</option>
                   <option value="7d">Last 7 days</option>
                 </select>
-              
+                </div>
               <button
                 onClick={handleProcessFigmaComments}
                 disabled={isProcessingComments}
@@ -620,6 +713,7 @@ function App() {
                   {activeTab === "summary" && (
                     <>
                       <div>
+                      <p className="primary-text" style={{marginBottom: '16px'}}>{processedComments || "All unresolved comments"}</p>
                         {aiSummary && (
                           <div className="ai-summary-content">
                             {renderSummaryWithInlineReferences(aiSummary)}

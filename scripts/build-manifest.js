@@ -11,7 +11,7 @@ const baseManifest = {
   "main": "dist/code.js",
   "ui": "dist/ui.html",
   "editorType": ["figma", "figjam"],
-  "enablePrivatePluginApi": true,
+  // "enablePrivatePluginApi": true,
   "documentAccess": "dynamic-page",
   "networkAccess": { 
     "allowedDomains": [

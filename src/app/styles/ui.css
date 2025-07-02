@@ -29,7 +29,7 @@ button {
   font-weight: 500;
   display: flex;
   align-items: center;
-  border-radius: 8px;
+  border-radius: 6px;
   gap: 4px;
   height: 40px;
 }
@@ -45,9 +45,13 @@ h1{
 h2, h3, h4{
   font-weight: 600;
   margin: 0 0 0 0;
+  font-size: 15px;
 }
 ul{
   font-size: 13px;
+}
+label{
+  font-weight: 600;
 }
 .logo{
   margin-left: 8px;
@@ -96,7 +100,7 @@ ul{
 .commentsPanel{
   background-color: #ffffff;
   border-top: 1px solid #E6E6E6;
-  padding: 8px 16px 16px 16px;
+  padding: 8px 16px 64px 16px;
   min-height: 40vh;
 }
 .pageContainer{
@@ -150,7 +154,7 @@ hr{
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   margin-bottom: 16px;
   margin-top: 16px;
   padding: 0 16px;
@@ -160,11 +164,12 @@ hr{
   display: flex;
   flex-direction: column;
   align-items: left;
+  flex-grow: 1;
 }
 .date-range-container{
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
 }
 select{
@@ -178,9 +183,21 @@ select{
   font-size: 13px;
   height: 40px;
 }
-select:focus{
-  outline: 2px solid #191919;
-  outline-offset: 2px;
+input{
+  font-size: 13px;
+  font-family: "Inter", sans-serif;
+}
+select:focus, input:focus{
+  outline: 1px solid #0B99FF;
+  outline-offset: -1px;
+}
+.url-input{
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #E6E6E6;
+  border-radius: 6px;
+  margin-top: 4px;
+  height: 40px;
 }
 .tab-navigation{
   margin-bottom: 16px;

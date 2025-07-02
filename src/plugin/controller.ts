@@ -60,12 +60,13 @@ figma.ui.onmessage = async (msg) => {
 
   // Handler for when UI requests Figma data (fileKey, accessToken) for comment processing
   if (msg.type === 'request-figma-data-for-comment-processing') {
-    const fileKey = figma.fileKey;
+    // Use the fileKey from the message if provided, otherwise fall back to figma.fileKey
+    const fileKey = msg.fileKey || figma.fileKey;
     
     if (!fileKey) {
       figma.ui.postMessage({
         type: 'figma-data-retrieval-error',
-        error: 'Please open a Figma design file first. This plugin needs to run within an active file to access comments.',
+        error: 'Please provide a valid Figma file URL. The file key could not be determined.',
       });
       return;
     }
