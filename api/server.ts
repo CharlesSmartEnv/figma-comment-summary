@@ -21,7 +21,7 @@ app.use(cors({
     const allowedOrigins = [
       'https://www.figma.com',
       'https://figma.com',
-      'https://figma-comment-export.onrender.com',
+      'https://figma-comment-summary.onrender.com',
       'null'
     ];
     

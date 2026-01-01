@@ -118,7 +118,7 @@ module.exports = (env, argv) => {
         'process.env.NGROK_URL': JSON.stringify(process.env.NGROK_URL),
         'process.env.SERVER_URL': JSON.stringify(
           isProduction 
-            ? 'https://figma-comment-export.onrender.com'
+            ? 'https://figma-comment-summary.onrender.com'
             : process.env.NGROK_URL || 'http://localhost:3000'
         ),
       }),

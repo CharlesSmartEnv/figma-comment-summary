@@ -15,7 +15,7 @@ const baseManifest = {
   "documentAccess": "dynamic-page",
   "networkAccess": { 
     "allowedDomains": [
-      "https://figma-comment-export.onrender.com",
+      "https://figma-comment-summary.onrender.com",
       "https://www.figma.com",
       "https://figma.com"
     ] 

@@ -238,6 +238,12 @@ function App() {
     clearPolling();
   };
 
+  const handleReconnectFigma = async () => {
+    // Force a clean re-auth to avoid dealing with expired tokens.
+    handleDisconnectFigma();
+    await handleConnectFigma();
+  };
+
   const handleProcessFigmaComments = () => {
     if (isProcessingComments) {
       return;
@@ -679,11 +685,24 @@ function App() {
             {!isProcessingComments &&
               !processedComments &&
               !showChunkingWarning && (
-                <img
-                  src={emptyStateImage}
-                  alt="Empty State"
-                  className="empty-state-image"
-                />
+                commentsError ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '24px' }}>
+                    <p className="primary-text" style={{ margin: 0 }}>Failed to get to Figma comments</p>
+                    <button
+                      onClick={handleReconnectFigma}
+                      className="primary-button"
+                      aria-label="Reconnect Figma Account"
+                    >
+                      Reconnect Figma
+                    </button>
+                  </div>
+                ) : (
+                  <img
+                    src={emptyStateImage}
+                    alt="Empty State"
+                    className="empty-state-image"
+                  />
+                )
               )}
             {isProcessingComments && (
               <div className="processing-comments-container">

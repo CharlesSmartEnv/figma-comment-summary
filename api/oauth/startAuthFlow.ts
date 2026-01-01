@@ -52,21 +52,19 @@ router.get('/start-auth-flow', async (req: Request, res: Response) => {
     });
 
     // Construct Figma OAuth URL
-    const figmaAuthUrl = new URL('https://www.figma.com/oauth'); // Official authorization endpoint
+    const figmaAuthUrl = new URL('https://www.figma.com/oauth');
     figmaAuthUrl.searchParams.append('client_id', process.env.FIGMA_CLIENT_ID!);
-    figmaAuthUrl.searchParams.append('redirect_uri', process.env.FIGMA_REDIRECT_URI!); // Your /api/oauth/callback
-    figmaAuthUrl.searchParams.append('scope', 'file_comments:read, file_content:read'); // Or any other scopes you need
+    figmaAuthUrl.searchParams.append('redirect_uri', process.env.FIGMA_REDIRECT_URI!); 
+    figmaAuthUrl.searchParams.append('scope', 'file_comments:read'); 
     figmaAuthUrl.searchParams.append('state', write_key); // The write_key IS the state parameter
     figmaAuthUrl.searchParams.append('code_challenge', pkce_challenge);
     figmaAuthUrl.searchParams.append('code_challenge_method', 'S256');
     figmaAuthUrl.searchParams.append('response_type', 'code');
 
-    // Redirect the browser (popup window) to Figma's OAuth page
     res.redirect(figmaAuthUrl.toString());
 
   } catch (error) {
     console.error('Error in /api/oauth/start-auth-flow:', error);
-    // Update session status to error if possible
     const sessionToUpdate = authSessionsStore.get(write_key);
     if (sessionToUpdate) {
       sessionToUpdate.status = 'error';
