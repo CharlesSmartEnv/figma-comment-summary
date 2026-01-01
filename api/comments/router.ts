@@ -3,6 +3,7 @@ import handleGetFileComments from './getComments';
 
 const commentsRouter = express.Router();
 
-commentsRouter.get('/getComments', handleGetFileComments);
+// UI calls POST /api/comments/getComments with JSON body
+commentsRouter.post('/getComments', handleGetFileComments);
 
 export default commentsRouter; 

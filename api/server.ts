@@ -6,7 +6,7 @@ import startAuthFlowRouter from './oauth/startAuthFlow';
 import callbackRouter from './oauth/callback';
 import initiateRouter from './oauth/initiate';
 import pollStatusRouter from './oauth/pollStatus';
-import handleGetFileComments from './comments/getComments';
+import commentsRouter from './comments/router';
 
 dotenv.config();
 
@@ -57,7 +57,7 @@ app.use('/api/oauth', initiateRouter);
 app.use('/api/oauth', startAuthFlowRouter);
 app.use('/api/oauth', callbackRouter);
 app.use('/api/oauth', pollStatusRouter);
-app.use('/api/comments', handleGetFileComments);
+app.use('/api/comments', commentsRouter);
 
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
