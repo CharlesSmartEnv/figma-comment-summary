@@ -10,6 +10,8 @@ const openRouterApiKey = process.env.OPENROUTER_API_KEY || (() => {
   throw new Error('OPENROUTER_API_KEY environment variable is not set');
 })();
 
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'deepseek/deepseek-r1-0528:free';
+
 interface FilteredComment {
   userHandle: string | null;
   message: string;
@@ -137,7 +139,7 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
         const response = await axios.post(
           `${OPENROUTER_API_BASE_URL}/chat/completions`,
           {
-            model: 'deepseek/deepseek-chat-v3-0324:free',
+            model: OPENROUTER_MODEL,
             messages: [
               {
                 role: 'system',
@@ -192,7 +194,7 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
       const response = await axios.post(
         `${OPENROUTER_API_BASE_URL}/chat/completions`,
         {
-          model: 'deepseek/deepseek-chat-v3-0324:free',
+          model: OPENROUTER_MODEL,
           messages: [
             {
               role: 'system',
@@ -218,7 +220,15 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
     }
 
   } catch (error) {
-    console.error('Error calling OpenRouter API:', error);
+    const maybeAxiosErr = error as any;
+    const status = maybeAxiosErr?.response?.status;
+    const data = maybeAxiosErr?.response?.data;
+    console.error('Error calling OpenRouter API:', {
+      status,
+      data,
+      message: maybeAxiosErr?.message,
+      model: OPENROUTER_MODEL,
+    });
     
     // More specific error handling
     if (error instanceof Error) {
@@ -227,6 +237,10 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
       }
       if (error.message.includes('rate')) {
         throw new Error(`Rate limit exceeded: ${error.message}`);
+      }
+      if (status) {
+        const detailsStr = data ? JSON.stringify(data) : '';
+        throw new Error(`OpenRouter API error (${status})${detailsStr ? `: ${detailsStr}` : ''}`);
       }
       throw new Error(`OpenRouter API error: ${error.message}`);
     }
