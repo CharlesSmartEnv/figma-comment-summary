@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
-import logo from '../assets/logo.svg';
 import '../styles/ui.css';
 import backgroundImage from '../assets/background.jpg';
 import emptyStateImage from '../assets/empty-illustration.svg';
@@ -568,7 +567,6 @@ function App() {
   
                   {isAuthenticating ? "Authenticating..." : "Connect Figma"}
                 </button>
-                {/* {isAuthenticating && <p className='secondary-text' style={{ marginTop: '16px', textAlign: 'center' }}>😬 I'm too cheap to pay for a server, so it might take 30s+ to load the first time</p>} */}
                 {authError && (
                   <p
                     role="alert"
@@ -587,11 +585,9 @@ function App() {
           <>
             <div className="date-range-header">
               <div className="date-range-header-left">
-                <h3>Summarise all comments</h3>
-                {/* <p className="secondary-text">{processedComments || "All unresolved comments"}</p> */}
                 
                 {/* Figma URL Input */}
-                <div className="figma-url-container" style={{ marginTop: '12px' }}>
+                <div className="figma-url-container">
                   <label htmlFor="figma-url-input" className="url-input-label">
                     Figma file URL
                   </label>
@@ -652,7 +648,7 @@ function App() {
             <p
               role="alert"
               className="error-message"
-              style={{ color: "red", marginTop: "5px" }}
+              style={{ marginTop: "8px"}}
             >
               {commentsError}
             </p>
@@ -686,8 +682,10 @@ function App() {
               !processedComments &&
               !showChunkingWarning && (
                 commentsError ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', padding: '24px' }}>
-                    <p className="primary-text" style={{ margin: 0 }}>Failed to get to Figma comments</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ margin: 0, marginBottom: '8px' }}>Confirm the share URL is correct, and that you authenticated the correct Figma account.</p>
+                    </div>
                     <button
                       onClick={handleReconnectFigma}
                       className="primary-button"
@@ -777,6 +775,11 @@ function App() {
             className="tertiary-button"
             aria-label="Log out of Figma Account"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m16 17 5-5-5-5"/>
+              <path d="M21 12H9"/>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            </svg>
             Log Out
           </button>
         </div>
