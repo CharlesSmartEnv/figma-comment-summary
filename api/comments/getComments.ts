@@ -10,7 +10,8 @@ const openRouterApiKey = process.env.OPENROUTER_API_KEY || (() => {
   throw new Error('OPENROUTER_API_KEY environment variable is not set');
 })();
 
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'deepseek/deepseek-r1-0528:free';
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free';
+const OPENROUTER_FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || 'meta-llama/llama-3.2-3b-instruct:free';
 
 interface FilteredComment {
   userHandle: string | null;
@@ -99,6 +100,63 @@ const estimateTokenCount = (text: string): number => {
 };
 
 
+const callOpenRouterWithFallback = async (
+  model: string,
+  messages: Array<{ role: string; content: string }>,
+  fallbackModel: string
+): Promise<string> => {
+  const makeRequest = async (currentModel: string) => {
+    const response = await axios.post(
+      `${OPENROUTER_API_BASE_URL}/chat/completions`,
+      {
+        model: currentModel,
+        messages,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${openRouterApiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
+          'X-Title': 'Figma Comment Export'
+        },
+      }
+    );
+    return response.data.choices[0]?.message?.content || 'Unable to generate summary.';
+  };
+
+  try {
+    return await makeRequest(model);
+  } catch (error: any) {
+    const status = error?.response?.status;
+    const isRateLimit = status === 429;
+    const isServerError = status >= 500 && status < 600;
+    const isModelError = status === 400 && (
+      error?.response?.data?.error?.message?.includes('rate') ||
+      error?.response?.data?.error?.message?.includes('quota') ||
+      error?.response?.data?.error?.message?.includes('limit')
+    );
+
+    // Try fallback for rate limits, server errors, or model-specific errors
+    if ((isRateLimit || isServerError || isModelError) && model !== fallbackModel) {
+      console.warn(`Primary model ${model} failed (status: ${status}), falling back to ${fallbackModel}`);
+      try {
+        return await makeRequest(fallbackModel);
+      } catch (fallbackError: any) {
+        const fallbackStatus = fallbackError?.response?.status;
+        console.error('Fallback model also failed:', {
+          status: fallbackStatus,
+          data: fallbackError?.response?.data,
+        });
+        throw fallbackError;
+      }
+    }
+    
+    // Re-throw if not a retryable error or if fallback already failed
+    throw error;
+  }
+};
+
+
 const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promise<string> => {
   if (!process.env.OPENROUTER_API_KEY) {
     throw new Error('OpenRouter API key not configured');
@@ -136,32 +194,20 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
           continue;
         }
 
-        const response = await axios.post(
-          `${OPENROUTER_API_BASE_URL}/chat/completions`,
-          {
-            model: OPENROUTER_MODEL,
-            messages: [
-              {
-                role: 'system',
-                content: 'You are a helpful assistant that summarizes Figma design comments. Provide a concise summary highlighting key feedback themes with primary action points at the top. Merge similar themes together and do not number them. At the end of each theme in your summary, cite the ID(s) of the original comment(s) that support it using the format [ID: comment_id_1, comment_id_2]. Each comment in the input will have an \'ID:\' field. Do not include comment ID citations for action point summary. Keep it brief as this is part of a larger summary.',
-              },
-              {
-                role: 'user',
-                content: `Please summarize these Figma comments (chunk ${i + 1}/${chunks.length}):\n\n${commentsText}`
-              }
-            ],
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${openRouterApiKey}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
-              'X-Title': 'Figma Comment Export'
+        const chunkSummary = await callOpenRouterWithFallback(
+          OPENROUTER_MODEL,
+          [
+            {
+              role: 'system',
+              content: 'You are a helpful assistant that summarizes Figma design comments. Provide a concise summary highlighting key feedback themes with primary action points at the top. Merge similar themes together and do not number them. At the end of each theme in your summary, cite the ID(s) of the original comment(s) that support it using the format [ID: comment_id_1, comment_id_2]. Each comment in the input will have an \'ID:\' field. Do not include comment ID citations for action point summary. Keep it brief as this is part of a larger summary.',
             },
-          }
+            {
+              role: 'user',
+              content: `Please summarize these Figma comments (chunk ${i + 1}/${chunks.length}):\n\n${commentsText}`
+            }
+          ],
+          OPENROUTER_FALLBACK_MODEL
         );
-
-        const chunkSummary = response.data.choices[0]?.message?.content || `Unable to summarize chunk ${i + 1}`;
         chunkSummaries.push(`**Chunk ${i + 1}:** ${chunkSummary}`);
 
         // Add delay between requests to avoid rate limiting
@@ -191,43 +237,32 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
         throw new Error(`Comment set too large (${estimatedTokens} estimated tokens). Consider reducing comment count.`);
       }
 
-      const response = await axios.post(
-        `${OPENROUTER_API_BASE_URL}/chat/completions`,
-        {
-          model: OPENROUTER_MODEL,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a helpful assistant that summarizes Figma design comments. Provide a concise summary highlighting key feedback themes with primary action points at the top. Merge similar themes together and do not number them. At the end of each theme in your summary, cite the ID(s) of the original comment(s) that support it using the format [ID: comment_id_1, comment_id_2]. Each comment in the input will have an \'ID:\' field. Do not include comment ID citations for action point summary. Keep it brief as this is part of a larger summary.'
-            },
-            {
-              role: 'user',
-              content: `Please summarize these Figma comments:\n\n${commentsText}`
-            }
-          ],
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${openRouterApiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': process.env.SITE_URL || 'http://localhost:3000',
-            'X-Title': 'Figma Comment Export'
+      return await callOpenRouterWithFallback(
+        OPENROUTER_MODEL,
+        [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant that summarizes Figma design comments. Provide a concise summary highlighting key feedback themes with primary action points at the top. Merge similar themes together and do not number them. At the end of each theme in your summary, cite the ID(s) of the original comment(s) that support it using the format [ID: comment_id_1, comment_id_2]. Each comment in the input will have an \'ID:\' field. Do not include comment ID citations for action point summary. Keep it brief as this is part of a larger summary.'
           },
-        }
+          {
+            role: 'user',
+            content: `Please summarize these Figma comments:\n\n${commentsText}`
+          }
+        ],
+        OPENROUTER_FALLBACK_MODEL
       );
-
-      return response.data.choices[0]?.message?.content || 'Unable to generate summary.';
     }
 
   } catch (error) {
     const maybeAxiosErr = error as any;
     const status = maybeAxiosErr?.response?.status;
     const data = maybeAxiosErr?.response?.data;
-    console.error('Error calling OpenRouter API:', {
+    console.error('Error calling OpenRouter API (both primary and fallback failed):', {
       status,
       data,
       message: maybeAxiosErr?.message,
-      model: OPENROUTER_MODEL,
+      primaryModel: OPENROUTER_MODEL,
+      fallbackModel: OPENROUTER_FALLBACK_MODEL,
     });
     
     // More specific error handling
@@ -235,8 +270,8 @@ const summarizeCommentsWithAI = async (sortedComments: FilteredComment[]): Promi
       if (error.message.includes('token')) {
         throw new Error(`Token limit exceeded: ${error.message}`);
       }
-      if (error.message.includes('rate')) {
-        throw new Error(`Rate limit exceeded: ${error.message}`);
+      if (status === 429) {
+        throw new Error(`Rate limit exceeded on both models. Please try again later.`);
       }
       if (status) {
         const detailsStr = data ? JSON.stringify(data) : '';
