@@ -396,7 +396,7 @@ const handleGetFileComments = async (req: express.Request, res: express.Response
       aiSummary = await summarizeCommentsWithAI(sortedComments);
     } catch (aiError) {
       console.error('Failed to generate AI summary:', aiError);
-      aiSummary = 'AI summary unavailable due to processing error.';
+      aiSummary = 'AI summary unavailable. Likely due to rate limits, please try again later.';
     }
 
     return res.status(200).json({ 
