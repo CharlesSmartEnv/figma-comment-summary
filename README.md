@@ -8,6 +8,10 @@ Summarise crit sessions, catch-up after time-off, or remind yourself of the
 **[Install Comment Summary from Figma Community](https://www.figma.com/community/plugin/1521063587587196294/comment-summary)**
 
 
+## 🔒 Privacy & Data Handling
+
+User comments (including handles, messages, timestamps, and reactions) are fetched from Figma's API and sent to OpenRouter for AI summarization. No comment data is stored persistently—only temporary in-memory OAuth sessions (expiring after 15 minutes) are maintained for authentication. All processing occurs on-demand and data is not retained after the request completes.
+
 
 ## ✨ Features
 
@@ -77,10 +81,6 @@ FIGMA_CLIENT_SECRET=your_figma_client_secret
 FIGMA_REDIRECT_URI=your_redirect_uri
 OPENROUTER_API_KEY=your_google_ai_api_key
 ```
-
-## 🔒 Privacy & Data Handling
-
-User comments (including handles, messages, timestamps, and reactions) are fetched from Figma's API and sent to OpenRouter for AI summarization. No comment data is stored persistently—only temporary in-memory OAuth sessions (expiring after 15 minutes) are maintained for authentication. All processing occurs on-demand and data is not retained after the request completes.
 
 ## 📝 License
 
