@@ -5,7 +5,6 @@ export interface AuthSession {
   pkceVerifier: string;
   status: 'pending' | 'completed' | 'error';
   accessToken?: string;
-  refreshToken?: string;
   errorMessage?: string;
   createdAt: number; // Store as timestamp (Date.now())
 }
