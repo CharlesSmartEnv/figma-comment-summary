@@ -4,6 +4,24 @@ import { authSessionsStore } from '../utils/authStore';
 
 const router = express.Router();
 
+const escapeHtml = (input: string) =>
+  input.replace(/[&<>"']/g, (ch) => {
+    switch (ch) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return ch;
+    }
+  });
+
 router.get('/callback', async (req: Request, res: Response) => {
   const { code, state } = req.query;
   const cookieWriteKey = req.cookies?.figma_oauth_write_key;
@@ -79,13 +97,12 @@ router.get('/callback', async (req: Request, res: Response) => {
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
 
-    const { access_token, refresh_token } = tokenResponse.data;
+    const { access_token } = tokenResponse.data;
 
     if (!access_token) throw new Error('No access_token received from Figma.');
 
     session.status = 'completed';
     session.accessToken = access_token;
-    session.refreshToken = refresh_token;
     authSessionsStore.set(writeKey, session); // Save updated session
 
 
@@ -129,6 +146,7 @@ router.get('/callback', async (req: Request, res: Response) => {
     session.errorMessage = error.response?.data?.error_description || error.response?.data?.message || 'Failed to exchange code for token.';
     authSessionsStore.set(writeKey, session); // Save error state
 
+    const safeErrorMessage = escapeHtml(String(session.errorMessage || 'Authentication failed.'));
     res.status(500).send(`
       <!DOCTYPE html>
       <html>
@@ -160,7 +178,7 @@ router.get('/callback', async (req: Request, res: Response) => {
         </head>
         <body>
           <h1>Authentication Failed</h1>
-          <p>Details: ${session.errorMessage}</p>
+          <p>Details: ${safeErrorMessage}</p>
         </body>
       </html>
     `);

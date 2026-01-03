@@ -26,7 +26,6 @@ router.get('/poll-status', (req: Request, res: Response) => {
       const responsePayload = {
         status: 'completed',
         accessToken: session.accessToken,
-        refreshToken: session.refreshToken, // Removing to minimise scopes, need to test for issues.
       };
       // Remove the session from the store after successful retrieval
       authSessionsStore.delete(session.writeKey); // Assuming writeKey is the primary key of the store
